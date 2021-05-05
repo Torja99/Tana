@@ -7,12 +7,13 @@ if gtasks.auth_url:
         "4/1AY0e-g7dIkNYHc30rRzhSzRr8iQIV3JDVUNxQz1tELSX4Dqcm-a20bpIfOo")
 
 
-'''
-get id of a given task list name
-'''
+def get_id_first_task_list():
+    task_lists = gtasks.service.tasklists().list().execute()  # get all the task lists
+
+    return (task_lists["items"][1]["id"])
 
 
-def get_id(task_list_name):
+def get_id_task_list(task_list_name):
     task_lists = gtasks.service.tasklists().list().execute()  # get all the task lists
 
     for task_list in task_lists["items"]:
@@ -20,6 +21,24 @@ def get_id(task_list_name):
             task_list_id = task_list["id"]
 
     return task_list_id
+
+
+# enter a task name and defaults to first list get the id (needed for deleting)
+# gets the first id of a given task if there are more than one
+def get_id_task(task_name, task_list_name=None):
+    task_id = "-1"
+    task_list_id = get_id_first_task_list()
+
+    if (task_list_name):
+        task_list_id = get_id_task_list(task_list_name=task_list_name)
+    print(task_list_id)
+    task_list_info = gtasks.service.tasks().list(tasklist=task_list_id).execute()
+
+    for task in task_list_info["items"]:
+        if (task["title"] == task_name):
+            task_id = task["id"]
+            break
+    return task_id
 
 
 # list tasks due before that date
@@ -53,7 +72,7 @@ def list_tasks_time(time="2021-05-10T14:43:18.000Z"):
 
 def list_tasks(task_list_name):
     task_titles = []
-    task_list_id = get_id(task_list_name)
+    task_list_id = get_id_task_list(task_list_name)
     task_list_info = gtasks.service.tasks().list(tasklist=task_list_id).execute()
 
     for task in task_list_info["items"]:
@@ -62,25 +81,33 @@ def list_tasks(task_list_name):
     return task_titles
 
 
-test_list = {'kind': 'tasks#taskLists', 'etag': '"LTg4NzY2NDEzOA"', 'items': [{'kind': 'tasks#taskList', 'id': 'MTA5MzE5NzQ5Nzc0MzUxMzc3Mzk6MDow', 'etag': '"NzU4ODMzMzUz"', 'title': 'Current', 'updated': '2021-03-13T20:15:36.914Z', 'selfLink': 'https://www.googleapis.com/tasks/v1/users/@me/lists/MTA5MzE5NzQ5Nzc0MzUxMzc3Mzk6MDow'}, {'kind': 'tasks#taskList', 'id': 'NnNmMndZelBKZ1IwckZCWA', 'etag': '"NjMxNzk0NTc3"', 'title': 'Misc', 'updated': '2021-05-01T02:01:04.779Z', 'selfLink': 'https://www.googleapis.com/tasks/v1/users/@me/lists/NnNmMndZelBKZ1IwckZCWA'}, {'kind': 'tasks#taskList', 'id': 'bi11WE5URnBINUxONDlKSg', 'etag':
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      '"NjMxNTc4MTg4"', 'title': 'School', 'updated': '2021-05-01T01:57:29.044Z', 'selfLink': 'https://www.googleapis.com/tasks/v1/users/@me/lists/bi11WE5URnBINUxONDlKSg'}, {'kind': 'tasks#taskList', 'id': 'S3doa083M0Y0VnpyMzVqUA', 'etag': '"NjAzNzY1OTU5"', 'title': 'Work', 'updated': '2021-04-30T18:13:56.817Z', 'selfLink': 'https://www.googleapis.com/tasks/v1/users/@me/lists/S3doa083M0Y0VnpyMzVqUA'}]}
-
-# print(list_tasks("Current"))
-# print("====================================")
-print(list_tasks_time())
+def create_task(title, task_list_id=get_id_first_task_list(), due_date=str(pendulum.today())):
+    body = {"title": title, "due": due_date}
+    gtasks.service.tasks().insert(tasklist=task_list_id, body=body).execute()
 
 
-# BREAK DOWN NEXT STEPS
+def create_task_list(title):
+
+    gtasks.service.tasklists().insert(body={"title": title}).execute()
+
+
+def delete_task_list(title):
+    gtasks.service.tasklists().delete(tasklist=get_id_task_list(title))
+
+
+def delete_task(task_list_title, task_title):
+    gtasks.service.tasks().delete(tasklist=get_id_task_list(
+        task_list_title), task=get_id_task(task_title, task_list_title))
+
+
+# move all due before today to today
+
+# mark all of todays tasks as completed
+
+# fix delete functions
+
+# NEXT STEPS
 # convert the date on text to speech end from today
 # 1. how would to get finish_login string for other users
-# list today's tasks - test with clearing a task
-# change filter of todays tasks to have a due min
-# function to move all due tasks from yesterday to today
-# . create a task for tommorrow
-# . create a task list
-# . remove a task
-# . remove a tasklist
-# update a task
-# update a tasklist
-# change to classes?
+# MVC?
 # things to expand upon: pep8 style, documentation that auto generates using https://pdoc3.github.io/pdoc/
