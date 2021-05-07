@@ -2,10 +2,52 @@ from PySimpleGUI.PySimpleGUI import No
 from gtasks_api import GtasksAPI
 from urllib.parse import urlparse
 import pendulum
+from pyasn1.type.univ import Boolean
 gtasks = GtasksAPI('credentials.json', 'token.pickle')
 if gtasks.auth_url:
     gtasks.finish_login(
         "4/1AY0e-g7dIkNYHc30rRzhSzRr8iQIV3JDVUNxQz1tELSX4Dqcm-a20bpIfOo")
+
+
+# returns a list of dictionaries with the data needed for application
+def parse_response(task_title=None, task_list_title=None):
+    task_info = {"task_list_id": "", "task_list_title": "",
+                 "task_ids": [], "task_titles": [], "status": [], "due": []}
+    task_all_info = []
+
+    task_lists = gtasks.service.tasklists().list().execute()  # get all the task lists
+    for task_list in task_lists["items"]:
+        task_info["task_list_id"] = task_list["id"]
+        task_info["task_list_title"] = task_list["title"]
+
+        tasks = gtasks.service.tasks().list(
+            tasklist=task_list["id"], showCompleted=False).execute()
+        # go through the tasks of a specific list and add it do the info
+        for task in tasks["items"]:
+            task_info["task_ids"].append(task["id"])
+            task_info["task_titles"].append(task["title"])
+            task_info["status"].append(task["status"])
+            if "due" in task:
+                task_info["due"].append(task["due"])
+        task_all_info.append(task_info.copy())
+        task_info = {"task_list_id": "", "task_list_title": "",
+                     "task_ids": [], "task_titles": [], "status": [], "due": []}
+
+        return task_all_info
+
+
+# +++++++++++++++++++++++++++++++++++++++++++++++
+    # mark _ as completed
+    # mark _ from _ as completed
+    # mark all from _ as completed
+
+# get task id and tasklist id from a task title
+    # list all of tasklist and loop through everything until something matches
+# get task id and tasklist id from a task title and task list title
+    # last all of task lists and look for matches from there
+# get task ids of all tasks and task list of a task list title
+    # list all task lists and return all id
+# ======================================================
 
 
 def task_list_get_first_id():
@@ -13,25 +55,42 @@ def task_list_get_first_id():
     return (task_lists["items"][1]["id"])
 
 
-def task_get_id_list(task_list_name):
+# get task ids of all tasks and task list of a task list title
+    # list all task lists and return all id
+def task_get_id_list(task_list_title):
+    # LET THIS ALSO RETURN ALL OF THE IDS UNDERNEATH THAT TASK LIST
+    id_info = {"task_list_id": "", "task_ids": ""}
     task_lists = gtasks.service.tasklists().list().execute()  # get all the task lists
     for task_list in task_lists["items"]:
-        if (task_list["title"] == task_list_name):
+        if (task_list["title"] == task_list_title):
             task_list_id = task_list["id"]
-    return task_list_id
+            break  # get the first matching one
 
-# enter a task name and defaults to first list get the id (needed for deleting)
-# gets the first id of a given task if there are more than one
-
-
-def task_get_id(task_name, task_list_name=None):
-    task_id = "-1"
-    task_list_id = task_list_get_first_id()
-    if (task_list_name):
-        task_list_id = task_get_id_list(task_list_name=task_list_name)
+    # get tasks under that tasklist
+    task_ids = []
     task_list_info = gtasks.service.tasks().list(tasklist=task_list_id).execute()
     for task in task_list_info["items"]:
-        if (task["title"] == task_name):
+        task_ids.append(task["id"])
+    id_info["task_list_id"] = task_list_id
+    id_info["task_ids"] = task_ids
+    # CHANGE where this method is being referenced
+    return(id_info["task_list_id"])
+
+# enter a task title and defaults to first list get the id (needed for deleting)
+# gets the first id of a given task if there are more than one
+# below method
+
+
+def task_get_id(task_title, task_list_title=None):
+    task_id = "-1"
+    if (task_list_title):
+        task_list_id = task_get_id_list(task_list_title=task_list_title)
+    else:
+        # use first task list if not task list anme
+        task_list_id = task_list_get_first_id()
+    task_list_info = gtasks.service.tasks().list(tasklist=task_list_id).execute()
+    for task in task_list_info["items"]:
+        if (task["title"] == task_title):
             task_id = task["id"]
     return task_id
 
@@ -68,9 +127,9 @@ def list_tasks_time_updated(dueMin=pendulum.today(), dueMax=pendulum.tomorrow())
     return tasks_due_before_time_sorted
 
 
-def list_tasks(task_list_name):
+def list_tasks(task_list_title):
     task_titles = []
-    task_list_id = task_get_id_list(task_list_name)
+    task_list_id = task_get_id_list(task_list_title)
     task_list_info = gtasks.service.tasks().list(tasklist=task_list_id).execute()
     for task in task_list_info["items"]:
         task_titles.append(task["title"])
@@ -116,11 +175,21 @@ def update_due_task():
             tasklist=late_task_lists_ids[i], task=late_tasks_ids[i], body=body).execute()
 
 
-update_due_task()
+# update previous implementations using the new parse response function (save as new file and split pane)
 
-# check using tasks due before yesterday
 # mark all of todays tasks as completed
+# desired complete task function functionality
+    # mark _ as completed
+    # mark _ from _ as completed
+    # mark all from _ as completed
+    # mark all as completed
+    # mark a specific task as completed (just title or specify task list)
+    # mark all of a specific tasklist tasks as completed
+    # mark all of today's tasks as completed
+
 # fix delete functions
+
+# change title to title and other namings and naming conventions of functions and do only one thing
 
 # NEXT STEPS
 # convert the date on text to speech end from today
