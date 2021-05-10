@@ -37,12 +37,51 @@ def get_task_list_id(task_list_title=None):
     return (task_list_id)
 
 
+# gets id of  first task matching that task title
+def get_task_id(task_title):
+    # get
+    task_lists = service.tasklists().list().execute()
+    task_id = None
+    for task_list in task_lists["items"]:
+        task_list_id = task_list["id"]
+        tasks = service.tasks().list(tasklist=task_list_id, showCompleted=False).execute()
+        # get all tasks under a task list
+
+        if "items" in tasks:
+            for task in tasks["items"]:
+                if task["title"] == task_title:
+                    task_id = task["id"]
+                    break
+        if task_id:
+            break
+    return task_id
+
+
 '''
-returns task titles between two dates
+return tasks titles under a task list
 '''
 
 
-def list_tasks_time_updated(dueMin=pendulum.today(), dueMax=pendulum.tomorrow()):
+def list_tasks(task_list_title):
+    # may need to update to include id information
+    tasks_info = {
+        "id": [], "title": []}
+    task_list_id = get_task_list_id(task_list_title)
+    task_list_info = service.tasks().list(
+        tasklist=task_list_id, showCompleted=False).execute()
+    if "items" in task_list_info:
+        for task in task_list_info["items"]:
+            tasks_info["id"].append(task["id"])
+            tasks_info["title"].append(task["title"])
+    return tasks_info
+
+
+'''
+returns task titles between two dates in sorted order of due date
+'''
+
+
+def list_tasks_time(dueMin=pendulum.today(), dueMax=pendulum.tomorrow()):
     tasks_due_before_time = []
     tasks_due_before_time_sorted = {
         "id": [], "self_link": [], "title": [], "due": []}
@@ -76,7 +115,7 @@ changes task due date to today for tasks that were due before today
 
 def update_due_task():
     # find ids of late tasks
-    late_tasks_info = list_tasks_time_updated(
+    late_tasks_info = list_tasks_time(
         dueMin=None, dueMax=pendulum.today())
     late_task_lists_ids = []
     late_tasks_ids = late_tasks_info["id"]
@@ -110,7 +149,7 @@ creates a new task which defaults to todays date as due date, if no title place 
 '''
 
 
-def create_task_new(task_title, task_list_title=None, due_date=str(pendulum.today())):
+def create_task(task_title, task_list_title=None, due_date=str(pendulum.today())):
     # find id of task tak title
     if task_list_title:
         task_list_id = get_task_list_id(task_list_title=task_list_title)
@@ -119,3 +158,30 @@ def create_task_new(task_title, task_list_title=None, due_date=str(pendulum.toda
     body = {"title": task_title, "due": due_date}
     print(due_date)
     service.tasks().insert(tasklist=task_list_id, body=body).execute()
+
+
+'''
+complete a task: no parameters = complete todays tasks
+
+task list title = complete all under that one those
+task name = complete first one with that name
+task lis title and name = complete first one with that name
+# do above 3 
+'''
+
+
+def clear_task(task_list_title):
+    task_list_id = get_task_list_id(task_list_title=task_list_title)
+    # get all task ids from a list
+    task_info = list_tasks(task_list_title=task_list_title)
+    task_ids = task_info["id"]
+    task_titles = task_info["title"]
+    for i in range(len(task_ids)):
+        body = {"id": task_ids[i], "title": task_titles[i],
+                "status": "completed"}
+        service.tasks().update(
+            tasklist=task_list_id, task=task_ids[i], body=body).execute()
+
+
+# print(list_tasks_time())
+print(clear_task("What's going on"))
