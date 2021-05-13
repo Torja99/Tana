@@ -38,10 +38,12 @@ def get_task_list_id(task_list_title=None):
 
 
 # gets id of  first task matching that task title
-def get_task_id(task_title):
+def get_task_info_from_task_title(task_title):
     # get
+    tasks_info = {
+        "id": [], "list_id": []}
+    task_list_id = get_task_list_id(task_title)
     task_lists = service.tasklists().list().execute()
-    task_id = None
     for task_list in task_lists["items"]:
         task_list_id = task_list["id"]
         tasks = service.tasks().list(tasklist=task_list_id, showCompleted=False).execute()
@@ -50,11 +52,29 @@ def get_task_id(task_title):
         if "items" in tasks:
             for task in tasks["items"]:
                 if task["title"] == task_title:
-                    task_id = task["id"]
+                    tasks_info["id"] = task["id"]
                     break
-        if task_id:
+        if tasks_info["list_id"]:
             break
-    return task_id
+    tasks_info["list_id"] = task_list_id
+    return tasks_info
+
+
+def get_task_info_from_task_list_and_task_title(task_title, task_list_title):
+    task_info = {
+        "id": "", "list_id": ""}
+    task_info["list_id"] = get_task_list_id(task_list_title)
+
+    tasks = service.tasks().list(
+        tasklist=task_info["list_id"], showCompleted=False).execute()
+    # get all tasks under a task list
+
+    if "items" in tasks:
+        for task in tasks["items"]:
+            if task["title"] == task_title:
+                task_info["id"] = task["id"]
+                break
+    return (task_info)
 
 
 '''
@@ -167,10 +187,32 @@ task list title = complete all under that one those
 task name = complete first one with that name
 task lis title and name = complete first one with that name
 # do above 3 
+# make a requirements txt file 
+
 '''
 
 
-def clear_task(task_list_title):
+def clear_todays_tasks():
+    # get info of todays tasks
+    todays_tasks = list_tasks_time()
+    todays_task_lists_ids = []
+    todays_tasks_ids = todays_tasks["id"]
+    todays_tasks_urls = todays_tasks["self_link"]
+    todays_tasks_titles = todays_tasks["title"]
+    # get which task list a task belongs to by parsing the selflink
+    for url in todays_tasks_urls:
+        url_parsed = urlparse(url)
+        task_list_id = url_parsed.path.split("/")[4]
+        todays_task_lists_ids.append(task_list_id)
+
+    for i in range(len(todays_task_lists_ids)):
+        body = {"id": todays_tasks_ids[i], "title": todays_tasks_titles[i],
+                "status": "completed"}
+        service.tasks().update(
+            tasklist=todays_task_lists_ids[i], task=todays_tasks_ids[i], body=body).execute()
+
+
+def clear_all_tasks_from_task_list(task_list_title):
     task_list_id = get_task_list_id(task_list_title=task_list_title)
     # get all task ids from a list
     task_info = list_tasks(task_list_title=task_list_title)
@@ -183,5 +225,28 @@ def clear_task(task_list_title):
             tasklist=task_list_id, task=task_ids[i], body=body).execute()
 
 
-# print(list_tasks_time())
-print(clear_task("What's going on"))
+def clear_task(task_title):
+    task_info = get_task_info_from_task_title(task_title)
+    task_id, task_list_id = task_info["id"], task_info["list_id"]
+
+    body = {"id": task_id, "title": task_title,
+            "status": "completed"}
+    service.tasks().update(
+        tasklist=task_list_id, task=task_id, body=body).execute()
+    # find matching title
+
+
+def clear_task_from_list(task_title, task_list_title):
+    task_info = get_task_info_from_task_list_and_task_title(
+        task_title, task_list_title)
+    task_id, task_list_id = task_info["id"], task_info["list_id"]
+
+    print(task_id)
+    print(task_list_id)
+    body = {"id": task_id, "title": task_title,
+            "status": "completed"}
+    service.tasks().update(
+        tasklist=task_list_id, task=task_id, body=body).execute()
+
+
+clear_task_from_list("digital diploma", "TEST")
