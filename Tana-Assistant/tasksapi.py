@@ -249,4 +249,5 @@ def clear_task_from_list(task_title, task_list_title):
         tasklist=task_list_id, task=task_id, body=body).execute()
 
 
-clear_task_from_list("digital diploma", "TEST")
+# clear_task_from_list("digital diploma", "TEST")
+clear_todays_tasks()

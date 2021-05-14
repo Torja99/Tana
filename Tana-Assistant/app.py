@@ -4,9 +4,9 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
-from tasksapi import *
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/tasks']
+# TODO: change to use main file https://dev.to/codemouse92/dead-simple-python-project-structure-and-imports-38c6
 
 
 def main():
@@ -31,7 +31,7 @@ def main():
         with open('token.json', 'w') as token:
             token.write(creds.to_json())
 
-    list_task_lists(maxResults=10)
+    print("WORKS")
 
 
 if __name__ == '__main__':

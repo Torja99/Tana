@@ -1,0 +1,14 @@
+google-api-core==1.26.3
+google-api-python-client==2.3.0
+google-auth==1.30.0
+google-auth-httplib2==0.1.0
+google-auth-oauthlib==0.4.4
+googleapis-common-protos==1.53.0
+gtasks-api==0.0.8
+oauthlib==3.1.0
+pendulum==2.1.2
+playsound==1.2.2
+PySimpleGUI==4.40.0
+urllib3==1.26.4
+wikipedia==1.4.0
+wolframalpha==5.0.0
