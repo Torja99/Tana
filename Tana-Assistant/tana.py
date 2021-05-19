@@ -1,7 +1,12 @@
 import wolframalpha
 import wikipedia
+from dotenv import load_dotenv
+import os
 import PySimpleGUI as sg
-client = wolframalpha.Client(app_id="8E4WW5-HR875K642A")
+
+load_dotenv()
+app_id = os.environ.get("api-token")
+client = wolframalpha.Client(app_id)
 
 
 sg.theme("Dark")
