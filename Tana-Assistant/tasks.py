@@ -1,4 +1,5 @@
 from urllib.parse import urlparse
+from wave import Error
 import pendulum
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
@@ -7,16 +8,17 @@ creds = Credentials.from_authorized_user_file('token.json', SCOPES)
 service = build('tasks', 'v1', credentials=creds)
 
 
-def list_task_lists(maxResults):
-    results = service.tasklists().list(maxResults=maxResults).execute()
-    items = results.get('items', [])
-
-    if not items:
-        print('No task lists found.')
+def list_task_lists():
+    results = service.tasklists().list().execute()
+    items = results.get("items", [])
+    if items:
+        task_lists = [item["title"] for item in items]
+        task_ids = [item["id"] for item in items]
     else:
-        print('Task lists:')
-        for item in items:
-            print(u'{0} ({1})'.format(item['title'], item['id']))
+        return ("-1")
+    print(task_ids)
+    print(task_lists)
+    return task_lists
 
 
 '''
@@ -176,7 +178,6 @@ def create_task(task_title, task_list_title=None, due_date=str(pendulum.today())
     else:
         task_list_id = get_task_list_id()
     body = {"title": task_title, "due": due_date}
-    print(due_date)
     service.tasks().insert(tasklist=task_list_id, body=body).execute()
 
 
@@ -225,6 +226,7 @@ def clear_all_tasks_from_task_list(task_list_title):
             tasklist=task_list_id, task=task_ids[i], body=body).execute()
 
 
+# will clear all tasks of a certain title
 def clear_task(task_title):
     task_info = get_task_info_from_task_title(task_title)
     task_id, task_list_id = task_info["id"], task_info["list_id"]
@@ -241,12 +243,7 @@ def clear_task_from_list(task_title, task_list_title):
         task_title, task_list_title)
     task_id, task_list_id = task_info["id"], task_info["list_id"]
 
-    print(task_id)
-    print(task_list_id)
     body = {"id": task_id, "title": task_title,
             "status": "completed"}
     service.tasks().update(
         tasklist=task_list_id, task=task_id, body=body).execute()
-
-
-print(list_tasks_time())

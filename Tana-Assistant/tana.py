@@ -26,5 +26,5 @@ while True:
         wiki_res = wikipedia.summary(values[0], sentences=2)
         sg.popup_no_wait("Wikipedia Result: " + wiki_res)
         window['-OUTPUT-'].update("Not a valid command")
-
+# TODO: check how to modularize pysimple guis
 window.close()
