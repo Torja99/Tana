@@ -19,8 +19,15 @@ def main():
     # time.
     if os.path.exists('token.json'):
         creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+        # !INSERT call to main page
+
     # If there are no (valid) credentials available, let the user log in.
     if not creds or not creds.valid:
+        # !INSERT call to welcome page
+        # TODO: make a function in gui for below logic up writing token
+        # above will accept creds as a parameter and
+        # call that function on button click of google sign in
+        # in below else condition make call to other gui
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
@@ -30,8 +37,6 @@ def main():
         # Save the credentials for the next run
         with open('token.json', 'w') as token:
             token.write(creds.to_json())
-
-    print("WORKS")
 
 
 if __name__ == '__main__':
