@@ -1,5 +1,6 @@
 import PySimpleGUI as sg
 import auth
+import time
 
 
 def welcome_page():
@@ -29,24 +30,83 @@ def run_welcome_page(creds, SCOPES):
             run_main_page()
             break
 
+# have a layout generator function that returns layout based on parameter
+
+
+def layout_picker():
+    sg.theme("Material 2")
+    layout1 = [[sg.Image(r"C:\Users\lenovo\Dropbox\LearningPython\Tana\Tana-Assistant\tana logo 2.png")],
+               [sg.Text("What can I help you with?", size=(
+                   30, 1), justification='center', font=("Calibri", 25), key="-Text-", relief=sg.RELIEF_RIDGE)],
+               #   [sg.Text("try saying ....", size=(
+               #       45, 1), justification='center', font=("Calibri", 14), relief=sg.RELIEF_RIDGE)],
+               #   [sg.Text("\"create task get groceries\"", size=(
+               #       45, 1), text_color=("grey"), justification='center', font=("Calibri", 14), relief=sg.RELIEF_RIDGE, key="-Text2-")],
+               #   [sg.Text("\"what's the weather in Toronto\"", size=(
+               #       45, 1), justification='center', text_color=("grey"), font=("Calibri", 14), relief=sg.RELIEF_RIDGE)],
+               ]
+    layout2 = [[sg.Image(r"C:\Users\lenovo\Dropbox\LearningPython\Tana\Tana-Assistant\tana logo 2.png")],
+               #   [sg.Text("What can I help you with?", size=(
+               #       30, 1), justification='center', font=("Calibri", 25), key="-Text-", relief=sg.RELIEF_RIDGE)],
+               [sg.Text("try saying ....", size=(
+                   45, 1), justification='center', font=("Calibri", 14), relief=sg.RELIEF_RIDGE)],
+               [sg.Text("\"create task get groceries\"", size=(
+                   45, 1), text_color=("grey"), justification='center', font=("Calibri", 14), relief=sg.RELIEF_RIDGE, key="-Text2-")],
+               [sg.Text("\"what's the weather in Toronto\"", size=(
+                   45, 1), justification='center', text_color=("grey"), font=("Calibri", 14), relief=sg.RELIEF_RIDGE)],
+               ]
+
+    # ----------- Create actual layout using Columns and a row of Buttons
+    layout = [[sg.Column(layout1, key='-COL1-'), sg.Column(layout2, visible=False, key='-COL2-')]  # sg.Column(layout3, visible=False, key='-COL3-')],
+              ]
+    return sg.Window("Tana - Virtual Assistant", layout, size=(400, 500), resizable=False, no_titlebar=False, grab_anywhere=True,  finalize=True)
+
 
 def main_page():
     sg.theme("Material2")
     layout = [[sg.Image(r"C:\Users\lenovo\Dropbox\LearningPython\Tana\Tana-Assistant\tana logo 2.png")],
               [sg.Text("What can I help you with?", size=(
-                  30, 1), justification='center', font=("Calibri", 25), relief=sg.RELIEF_RIDGE)],
-              [sg.Text("try saying ....", size=(
-                  30, 1), justification='center', font=("Calibri", 14), relief=sg.RELIEF_RIDGE)],
-              [sg.Button('Exit')]]
-    return sg.Window("Tana - Virtual Assistant", layout, size=(400, 200), resizable=False, no_titlebar=False, grab_anywhere=True,  finalize=True)
+                  30, 1), justification='center', font=("Calibri", 25), key="-Text-", relief=sg.RELIEF_RIDGE)],
+              #   [sg.Text("try saying ....", size=(
+              #       45, 1), justification='center', font=("Calibri", 14), relief=sg.RELIEF_RIDGE)],
+              #   [sg.Text("\"create task get groceries\"", size=(
+              #       45, 1), text_color=("grey"), justification='center', font=("Calibri", 14), relief=sg.RELIEF_RIDGE, key="-Text2-")],
+              #   [sg.Text("\"what's the weather in Toronto\"", size=(
+              #       45, 1), justification='center', text_color=("grey"), font=("Calibri", 14), relief=sg.RELIEF_RIDGE)],
+              ]
+    return sg.Window("Tana - Virtual Assistant", layout, size=(400, 500), resizable=False, no_titlebar=False, grab_anywhere=True,  finalize=True)
 
 
 def run_main_page():
-    window = main_page()
 
+    i = 1
+    window = layout_picker()
+    while True:
+        # message changes after first 4 seconds
+        if i == 1:
+            event, values = window.read(timeout=4000)
+            print(event, values)
+            if event == sg.WIN_CLOSED or event == 'Exit':
+                break
+            if i == 1:
+                window[f'-COL{i}-'].update(visible=False)
+                i += 1
+                window[f'-COL{i}-'].update(visible=True)
+
+        event, values = window.read()  # read without time out
+        if event == sg.WIN_CLOSED or event == 'Exit':
+            break
+    window.close()
+
+
+def run_main():
+    window = main_page()
     while True:  # Event Loop
-        event, values = window.read()
+        event, values = window.read(timeout=4000)
         print(event, values)
         if event == sg.WIN_CLOSED or event == 'Exit':
             break
     window.close()
+
+
+run_main_page()
