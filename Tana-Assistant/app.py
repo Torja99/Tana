@@ -23,13 +23,9 @@ def main():
 
     # If there are no (valid) credentials available, let the user log in.
     if not creds or not creds.valid:
-
         run_welcome_page(creds, SCOPES)
     else:
-        run_welcome_page(creds, SCOPES)
-        # run_main_page()
-        print("HELLO")
-        # CALL to main page
+        run_main_page()
 
 
 if __name__ == '__main__':

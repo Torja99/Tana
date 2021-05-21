@@ -2,7 +2,7 @@ import PySimpleGUI as sg
 import auth
 import time
 
-LOGO = r"C:\Users\lenovo\Dropbox\LearningPython\Tana\Tana-Assistant\tana logo 2.png"
+LOGO = r"C:\Users\lenovo\Dropbox\LearningPython\Tana\Tana-Assistant\tana_logo.png"
 
 
 def welcome_page():
@@ -29,11 +29,8 @@ def run_welcome_page(creds, SCOPES):
         if (event == "Sign In"):
             window.close()
             auth.auth_flow(creds, SCOPES)
-            # what do after authorization successfull
             run_main_page()
             break
-
-# have a layout generator function that returns layout based on parameter
 
 
 def main_page():
@@ -83,15 +80,3 @@ def run_main_page():
             break
     window.close()
 
-
-def run_main():
-    window = main_page()
-    while True:  # Event Loop
-        event, values = window.read(timeout=4000)
-        print(event, values)
-        if event == sg.WIN_CLOSED or event == 'Exit':
-            break
-    window.close()
-
-
-run_main_page()
