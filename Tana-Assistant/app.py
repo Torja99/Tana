@@ -26,7 +26,8 @@ def main():
 
         run_welcome_page(creds, SCOPES)
     else:
-        run_main_page()
+        run_welcome_page(creds, SCOPES)
+        # run_main_page()
         print("HELLO")
         # CALL to main page
 
