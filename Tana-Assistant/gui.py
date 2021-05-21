@@ -1,5 +1,5 @@
 import PySimpleGUI as sg
-from PySimpleGUI.PySimpleGUI import ToolTip
+import auth
 
 
 def welcome_page():
@@ -8,27 +8,26 @@ def welcome_page():
     layout = [[sg.Image(r"C:\Users\lenovo\Dropbox\LearningPython\Tana\Tana-Assistant\tana logo 2.png")],
               [sg.Text("Welcome", size=(
                   30, 1), justification='center', font=("Calibri", 25), relief=sg.RELIEF_RIDGE)],
-              #   [sg.Text("sign in for help with google tasks", size=(
-              #       30, 1), justification='center', font=("Calibri", 14), relief=sg.RELIEF_RIDGE)],
               [sg.Button('', image_data=google_base64, tooltip="sign in",
                          button_color=(sg.theme_background_color(), sg.theme_background_color()), border_width=0, key='Sign In')]]
-    return (sg.Window("Welcome to Tana", layout, size=(
+    return (sg.Window("Tana", layout, size=(
         300, 200), resizable=False, no_titlebar=False, grab_anywhere=True,  finalize=True))
 
 
-def run_welcome_page():
+def run_welcome_page(creds, SCOPES):
     window = welcome_page()
 
     while True:  # Event Loop
         event, values = window.read()
-        print(event, values)
-        if (event in (sg.WIN_CLOSED, "Sign In")):
+        if (event == sg.WIN_CLOSED):
             window.close()
+            break
+        if (event == "Sign In"):
+            window.close()
+            auth.auth_flow(creds, SCOPES)
+            # what do after authorization successfull
             run_main_page()
             break
-        if event == 'Show':
-            # Update the "output" text element to be the value of "input" element
-            window['-OUTPUT-'].update(values['-IN-'])
 
 
 def main_page():
@@ -51,7 +50,3 @@ def run_main_page():
         if event == sg.WIN_CLOSED or event == 'Exit':
             break
     window.close()
-
-
-run_welcome_page()
-# run_main_page()
