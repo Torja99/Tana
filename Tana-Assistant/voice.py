@@ -1,4 +1,3 @@
-from google.auth.crypt import verify_signature
 import speech_recognition as sr
 from time import ctime
 import time
@@ -7,10 +6,6 @@ from gtts import gTTS
 from playsound import playsound
 import glob
 import tasks
-# TODO:
-# ui will call speech function loop which makes use of functions that call the taskapi and wolfram/wiki api
-# have a try catch function for error handeling of unknown words
-#
 
 
 def remove_mp3():
@@ -22,7 +17,7 @@ def remove_mp3():
 
 
 def respond(audio_text):
-    print(audio_text)
+    # plays audio text and responds with it
     tts = gTTS(text=audio_text, lang='en')
     id = str(ctime()).split(":")
     id = " ".join(id)
@@ -72,8 +67,9 @@ def task_list_verifier(task_list_title):
 
 def handle_command(command):
 
-    if ("list" and ("today" or "today's") in command):
+    if ("list " and (" today " or " today's ") in command):
         listening = True
+        print("a")
 
         response_list = (tasks.list_tasks_time()["title"])
         response_list_numbered = numbered_list(response_list)
@@ -81,7 +77,8 @@ def handle_command(command):
         response = f"Today's tasks are {response_string}"
         respond(response)
 
-    elif ("list" in command and "create" not in command):
+    elif ("list " in command and "create" not in command):
+        print("b")
         listening = True
         words_in_command = command.split(" ")
 
@@ -99,13 +96,15 @@ def handle_command(command):
         else:
             respond("Invalid task list name")
 
-    elif ("update" in command):
+    elif (" update " in command):
+        print("c")
         listening = True
         tasks.update_due_task()
         response = "Overdue tasks are now due today!"
         respond(response)
 
-    elif ("create" and "list" in command):
+    elif ("create " and " list " in command):
+        print("d")
         listening = True
 
         words_in_command = command.split(" ")
@@ -114,7 +113,8 @@ def handle_command(command):
         response = f"New list {task_list_title} created"
         respond(response)
 
-    elif ("create" and "task" in command and "list" not in command):
+    elif ("create " and " task " in command and "list" not in command):
+        print("e")
         listening = True
 
         words_in_command = command.split(" ")
@@ -135,13 +135,15 @@ def handle_command(command):
             else:
                 respond("Invalid task list name")
 
-    elif ("clear" and ("today" or "today's") in command):
+    elif ("clear " and (" today " or " today's ") in command):
+        print("f")
         listening = True
         tasks.clear_todays_tasks()
         response = "Today's tasks cleared"
         respond(response)
 
-    elif (("clear" and "all" in command) and ("today" or "today's") not in command):
+    elif (("clear " and " all" in command) and ("today" or "today's") not in command):
+        print("g")
         listening = True
 
         words_in_command = command.split(" ")
@@ -155,7 +157,8 @@ def handle_command(command):
             response = "Invalid task list name"
             respond(response)
 
-    elif ("clear" and ("from" or "under") in command):
+    elif ("clear " and ("from" or "under") in command):
+        print("h")
         listening = True
 
         words_in_command = command.split(" ")
@@ -173,7 +176,8 @@ def handle_command(command):
         else:
             respond("Invalid task list name")
 
-    elif ("clear" in command):
+    elif ("clear " in command):
+        print("i")
         listening = True
 
         words_in_command = command.split(" ")
@@ -183,19 +187,20 @@ def handle_command(command):
         respond(response)
 
     elif "stop" in command:
+        print("j")
         listening = False
         print("Done listening")
         return listening
 
     else:
+        print("x")
         listening = True
         respond("Sorry didn't get that")
     return listening
 
 
 def main_loop():
-    time.sleep(2)
-    respond("Hi Torja, what can I do for you?")
+    respond("What can I help you with?")
     listening = True
     while listening == True:
         command = listen()
