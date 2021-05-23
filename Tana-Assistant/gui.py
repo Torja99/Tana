@@ -51,15 +51,13 @@ def main_page():
                ]
     layout3 = [[sg.Image(LOGO, background_color="white")],
 
-               [sg.Text("You said: ",  size=(
-                   30, 1), background_color="white", pad=((5, 0), (20, 0)),  justification='left', font=("Calibri", 14), key="-Text3-", relief=sg.RELIEF_RIDGE),
-               sg.Text("", key="command",  size=(
-                   30, 1), background_color="white", justification='left', font=("Calibri", 14),  relief=sg.RELIEF_RIDGE)],
+               [sg.Text("You said: ", size=(0, 0),  background_color="white",   justification='left', font=("Calibri", 14), key="-Text3-", ),
+               sg.Text("", key="command", size=(30, 2), background_color="white", pad=((0, 0), (21, 0)), font=("Calibri", 14),)],
 
-               [sg.Text("My response: ",  size=(
-                   30, 1), background_color="white", justification='left', font=("Calibri", 14), key="-Text4-", relief=sg.RELIEF_RIDGE),
-               sg.Text("", key="response",  size=(
-                   30, 1), background_color="white", justification='left', font=("Calibri", 14),  relief=sg.RELIEF_RIDGE)]
+               #    [sg.Text("My response: ",  size=(
+               #        30, 1), background_color="white", justification='left', font=("Calibri", 14), key="-Text4-", ),
+               #    sg.Text("", key="response",  size=(
+               #        30, 1), background_color="white",  font=("Calibri", 5),)]
 
                ]
 
@@ -87,6 +85,8 @@ def listen_thread(window):
     print(f"You said: {command}")
     response_text = voice.handle_command(command)
     print(response_text)
+    window["command"].update(value=command)
+    # window["response"].update(value=response_text)
     window.write_event_value("-Listen Thread Done-", "")
 
 
@@ -108,10 +108,9 @@ def run_main_page():
         event, values = window.read()  # read without time out
 
         if (event == "-Initial Thread Done-"):
-            listen(window)
-        if (event == "-Listen Thread Done-"):
             window[f'-COL{1}-'].update(visible=False)
             window[f'-COL{3}-'].update(visible=True)
+            listen(window)
         # message changes after first 4 seconds
 
         # command = voice.listen()
