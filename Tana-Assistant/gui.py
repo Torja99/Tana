@@ -1,6 +1,7 @@
 import PySimpleGUI as sg
 import auth
-import time
+import voice
+import threading
 
 LOGO = r"C:\Users\lenovo\Dropbox\LearningPython\Tana\Tana-Assistant\tana_logo.png"
 
@@ -49,8 +50,17 @@ def main_page():
                    45, 1), justification='center', background_color="white",  text_color=("grey"), font=("Calibri", 14), relief=sg.RELIEF_RIDGE)],
                ]
     layout3 = [[sg.Image(LOGO, background_color="white")],
+
                [sg.Text("You said: ",  size=(
-                   30, 1), justification='center', font=("Calibri", 14), key="-Text3-", relief=sg.RELIEF_RIDGE)],
+                   30, 1), background_color="white", pad=((5, 0), (20, 0)),  justification='left', font=("Calibri", 14), key="-Text3-", relief=sg.RELIEF_RIDGE),
+               sg.Text("", key="command",  size=(
+                   30, 1), background_color="white", justification='left', font=("Calibri", 14),  relief=sg.RELIEF_RIDGE)],
+
+               [sg.Text("My response: ",  size=(
+                   30, 1), background_color="white", justification='left', font=("Calibri", 14), key="-Text4-", relief=sg.RELIEF_RIDGE),
+               sg.Text("", key="response",  size=(
+                   30, 1), background_color="white", justification='left', font=("Calibri", 14),  relief=sg.RELIEF_RIDGE)]
+
                ]
 
     # ----------- Create actual layout using Columns and a row of Buttons
@@ -59,24 +69,80 @@ def main_page():
     return sg.Window("Tana", layout, size=(400, 500), background_color="white", resizable=False, no_titlebar=False, grab_anywhere=True,  finalize=True)
 
 
-def run_main_page():
+def get_command_text(audio_text):
+    return (audio_text)
 
+# function will be called in gui loop that retrieves audio text
+# tasks.response_text
+
+
+def initial_thread(window):
+    print("hello")
+    voice.respond("What can I help you with?")
+    window.write_event_value("-Initial Thread Done-", "")
+
+
+def listen_thread(window):
+    command = voice.listen()
+    print(f"You said: {command}")
+    response_text = voice.handle_command(command)
+    print(response_text)
+    window.write_event_value("-Listen Thread Done-", "")
+
+
+def initial_message(window):
+    threading.Thread(target=initial_thread, args=(
+        window,), daemon=True).start()
+
+
+def listen(window):
+    threading.Thread(target=listen_thread, args=(
+        window,), daemon=True).start()
+
+
+def run_main_page():
     i = 1
     window = main_page()
+    initial_message(window)
     while True:
-        # message changes after first 4 seconds
-        if i == 1:
-            event, values = window.read(timeout=4000)
-            print(event, values)
-            if event == sg.WIN_CLOSED or event == 'Exit':
-                break
-            if i == 1:
-                window[f'-COL{i}-'].update(visible=False)
-                i += 1
-                window[f'-COL{i}-'].update(visible=True)
-
         event, values = window.read()  # read without time out
+
+        if (event == "-Initial Thread Done-"):
+            listen(window)
+        if (event == "-Listen Thread Done-"):
+            window[f'-COL{1}-'].update(visible=False)
+            window[f'-COL{3}-'].update(visible=True)
+        # message changes after first 4 seconds
+
+        # command = voice.listen()
+        # print(command)
+        # print(f"You said: {command}")
+        # response_text = voice.handle_command(command)
+        # print(response_text)
+
+        # if i == 1:
+        #     # print(f"You said: {command}")
+        #     # response_text = voice.handle_command(command)
+        #     # print(response_text)
+
+        #     event, values = window.read(timeout=4000)
+        #     print(event, values)
+        #     if event == sg.WIN_CLOSED or event == 'Exit':
+        #         break
+        #     if i == 1:  # and no voice command has been heard
+        #         window[f'-COL{i}-'].update(visible=False)
+        #         i += 1
+        #         window[f'-COL{i}-'].update(visible=True)
+
         if event == sg.WIN_CLOSED or event == 'Exit':
             break
     window.close()
 
+
+run_main_page()
+# retrieve voice input and display
+# gif stuff
+# one letter at a time feature: display command one word at a time
+# create list monsters
+# c, cr, cre ,crea ,creat ,
+# create a layout for each letter
