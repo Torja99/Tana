@@ -8,8 +8,6 @@ SCOPES = ['https://www.googleapis.com/auth/tasks']
 # TODO: change to use main file https://dev.to/codemouse92/dead-simple-python-project-structure-and-imports-38c6
 
 
-# desired behav:
-# straight
 def main():
     """Shows basic usage of the Tasks API.
     Prints the title and ID of the first 10 task lists.

@@ -1,6 +1,5 @@
 import speech_recognition as sr
 from time import ctime
-import time
 import os
 from gtts import gTTS
 from playsound import playsound
@@ -28,27 +27,32 @@ def respond(audio_text):
     playsound(file_name)
 
 
+def get_text_response(response_string):
+    return response_string
+
+
 def listen():
     r = sr.Recognizer()
     with sr.Microphone() as source:
         print("I am listening...")
         audio = r.listen(source)
     command = ""
+    print("YES")
     try:
         command = r.recognize_google(audio)
-        print("You said: " + command)
+        # print("You said: " + command)  # remove after
     except sr.UnknownValueError:
-        print("Google Speech Recognition did not understand audio")
+        return "Google Speech Recognition did not understand audio"
     except sr.RequestError as e:
-        print("Request Failed; {0}".format(e))
+        return "Request Failed; {0}".format(e)
     return command
 
 
 def numbered_list(list):
     numbered_list = [f"{i+1} { list[i]}" for i in range(len(list))]
-    return(numbered_list)
+    return numbered_list
 
-# check if diff permuations of task list are in list of tasks and return an appropriate one
+# check if diff permutations of task list are in list of tasks and return an appropriate one
 
 
 def task_list_verifier(task_list_title):
@@ -62,13 +66,13 @@ def task_list_verifier(task_list_title):
         task_list_title = task_list_title.upper()
     else:
         task_list_title = None
-    return(task_list_title)
+    return task_list_title
 
 
 def handle_command(command):
 
     if ("list " and (" today " or " today's ") in command):
-        listening = True
+
         print("a")
 
         response_list = (tasks.list_tasks_time()["title"])
@@ -76,10 +80,11 @@ def handle_command(command):
         response_string = ", ".join(response_list_numbered)
         response = f"Today's tasks are {response_string}"
         respond(response)
+        return response
 
     elif ("list " in command and "create" not in command):
         print("b")
-        listening = True
+
         words_in_command = command.split(" ")
 
         task_list_title = words_in_command[len(words_in_command)-1]
@@ -93,29 +98,32 @@ def handle_command(command):
             response_string = ", ".join(response_list_numbered)
             response = f"Tasks from {task_list_title} include {response_string}"
             respond(response)
+            return response
         else:
-            respond("Invalid task list name")
+            response = "Invalid task list name"
+            respond(response)
+            return response
 
     elif (" update " in command):
         print("c")
-        listening = True
+
         tasks.update_due_task()
         response = "Overdue tasks are now due today!"
         respond(response)
+        return response
 
     elif ("create " and " list " in command):
         print("d")
-        listening = True
 
         words_in_command = command.split(" ")
         task_list_title = words_in_command[len(words_in_command)-1]
         tasks.create_task_list(task_list_title.title())
         response = f"New list {task_list_title} created"
         respond(response)
+        return response
 
     elif ("create " and " task " in command and "list" not in command):
         print("e")
-        listening = True
 
         words_in_command = command.split(" ")
         task_title_index = words_in_command.index("task") + 1
@@ -125,6 +133,7 @@ def handle_command(command):
             tasks.create_task(task_title)
             response = f"New task {task_title} created"
             respond(response)
+            return response
         else:
             task_list_title = words_in_command[len(words_in_command)-1]
             task_list_title = task_list_verifier(task_list_title)
@@ -132,19 +141,22 @@ def handle_command(command):
                 tasks.create_task(task_title, task_list_title)
                 response = f"New task {task_title} under list {task_list_title} created"
                 respond(response)
+                return response
             else:
-                respond("Invalid task list name")
+                response = "Invalid task list name"
+                respond(response)
+                return response
 
     elif ("clear " and (" today " or " today's ") in command):
         print("f")
-        listening = True
+
         tasks.clear_todays_tasks()
         response = "Today's tasks cleared"
         respond(response)
+        return response
 
     elif (("clear " and " all" in command) and ("today" or "today's") not in command):
         print("g")
-        listening = True
 
         words_in_command = command.split(" ")
         task_list_title = words_in_command[len(words_in_command)-1]
@@ -153,13 +165,14 @@ def handle_command(command):
             tasks.clear_all_tasks_from_task_list(task_list_title)
             response = f"Tasks from {task_list_title} cleared"
             respond(response)
+            return response
         else:
             response = "Invalid task list name"
             respond(response)
+            return response
 
     elif ("clear " and ("from" or "under") in command):
         print("h")
-        listening = True
 
         words_in_command = command.split(" ")
         task_title_index = words_in_command.index(
@@ -173,38 +186,37 @@ def handle_command(command):
             tasks.clear_task_from_list(task_title, task_list_title)
             response = f"Task {task_title} cleared from {task_list_title}"
             respond(response)
+            return response
         else:
-            respond("Invalid task list name")
+            response = "Invalid task list name"
+            respond(response)
+            return response
 
     elif ("clear " in command):
         print("i")
-        listening = True
 
         words_in_command = command.split(" ")
         task_title = words_in_command[len(words_in_command)-1]
         tasks.clear_task(task_title)
         response = f"Task {task_title} cleared"
         respond(response)
-
-    elif "stop" in command:
-        print("j")
-        listening = False
-        print("Done listening")
-        return listening
+        return response
 
     else:
         print("x")
-        listening = True
-        respond("Sorry didn't get that")
-    return listening
+
+        response = "Sorry didn't get that"
+        respond(response)
+        return response
 
 
-def main_loop():
-    respond("What can I help you with?")
-    listening = True
-    while listening == True:
-        command = listen()
-        listening = handle_command(command)
+# respond("What can I help you with?")
+# while True:
+#     command = listen()
 
-
-main_loop()
+#     if (("not understand " or "failed") in command):
+#         response_text = f"ERROR: {command}"
+#     else:
+#         print(f"You said: {command}")
+#         response_text = handle_command(command)
+#         print(response_text)

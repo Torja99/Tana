@@ -3,7 +3,7 @@ import auth
 import voice
 import threading
 
-LOGO = r"C:\Users\lenovo\Dropbox\LearningPython\Tana\Tana-Assistant\tana_logo.png"
+LOGO = r"C:\Users\lenovo\Dropbox\LearningPython\Tana\Tana-Assistant\assets\tana_logo.png"
 
 
 def welcome_page():
@@ -23,7 +23,7 @@ def run_welcome_page(creds, SCOPES):
     window = welcome_page()
 
     while True:  # Event Loop
-        event, values = window.read()
+        event = window.read()
         if (event == sg.WIN_CLOSED):
             window.close()
             break
@@ -37,81 +37,85 @@ def run_welcome_page(creds, SCOPES):
 def main_page():
     sg.theme("Material 2")
     sg.theme_background_color("white")
+
     layout1 = [[sg.Image(LOGO, background_color="white")],
                [sg.Text("What can I help you with?", size=(
-                   30, 1), background_color="white", justification='center', font=("Calibri", 25), key="-Text-", relief=sg.RELIEF_RIDGE)],
+                   150, 1), background_color="white", justification='center', font=("Calibri", 15),  relief=sg.RELIEF_RIDGE)],
                ]
     layout2 = [[sg.Image(LOGO, background_color="white")],
                [sg.Text("try saying ....", size=(
                    45, 1), background_color="white", justification='center', font=("Calibri", 14), relief=sg.RELIEF_RIDGE)],
                [sg.Text("\"create task get groceries\"", size=(
-                   45, 1), background_color="white", text_color=("grey"), justification='center', font=("Calibri", 14), relief=sg.RELIEF_RIDGE, key="-Text2-")],
+                   45, 1), background_color="white", text_color=("grey"), justification='center', font=("Calibri", 14), relief=sg.RELIEF_RIDGE)],
                [sg.Text("\"what's the weather in Toronto\"", size=(
                    45, 1), justification='center', background_color="white",  text_color=("grey"), font=("Calibri", 14), relief=sg.RELIEF_RIDGE)],
                ]
-    layout3 = [[sg.Image(LOGO, background_color="white")],
 
-               [sg.Text("You said: ", size=(0, 0),  background_color="white",   justification='left', font=("Calibri", 14), key="-Text3-", ),
-               sg.Text("", key="command", size=(30, 2), background_color="white", pad=((0, 0), (21, 0)), font=("Calibri", 14),)],
+    logo = sg.Image(LOGO, background_color="white")
+    loader = sg.Image(r"assets\loader.gif",
+                      background_color="white", key="-Load-")
+    layout3 = [[logo],
 
-               #    [sg.Text("My response: ",  size=(
-               #        30, 1), background_color="white", justification='left', font=("Calibri", 14), key="-Text4-", ),
-               #    sg.Text("", key="response",  size=(
-               #        30, 1), background_color="white",  font=("Calibri", 5),)]
+               [sg.Text("What can I help you with?", size=(100, 1),  background_color="white",
+                        justification='left', font=("Calibri", 14))],
+
+               [sg.Text("",  size=(100, 1), text_color="grey", background_color="white",
+                        justification='right', font=("Calibri", 14), key="-Response-")],
+               #    [loader]
 
                ]
 
     # ----------- Create actual layout using Columns and a row of Buttons
-    layout = [[sg.Column(layout1, key='-COL1-'), sg.Column(layout2, visible=False,
-                                                           key='-COL2-'), sg.Column(layout3, visible=False, key='-COL3-')]]
+    layout = [[sg.Column(layout1, visible=False, key='-COL1-'), sg.Column(layout2, visible=False,
+                                                                          key='-COL2-'), sg.Column(layout3, visible=True, key='-COL3-')],
+
+              [sg.Button('Click Me'), sg.Button('Exit')]]
     return sg.Window("Tana", layout, size=(400, 500), background_color="white", resizable=False, no_titlebar=False, grab_anywhere=True,  finalize=True)
 
 
-def get_command_text(audio_text):
-    return (audio_text)
-
-# function will be called in gui loop that retrieves audio text
-# tasks.response_text
-
-
-def initial_thread(window):
+def listen_thread(window):
     print("hello")
     voice.respond("What can I help you with?")
-    window.write_event_value("-Initial Thread Done-", "")
-
-
-def listen_thread(window):
     command = voice.listen()
     print(f"You said: {command}")
     response_text = voice.handle_command(command)
     print(response_text)
-    window["command"].update(value=command)
-    # window["response"].update(value=response_text)
-    window.write_event_value("-Listen Thread Done-", "")
-
-
-def initial_message(window):
-    threading.Thread(target=initial_thread, args=(
-        window,), daemon=True).start()
+    # window["-Command-"].update(value=command)
+    # window["-Response-"].update(value=response_text)
+    window.write_event_value("-Listen Thread Done-", "DONE")
 
 
 def listen(window):
     threading.Thread(target=listen_thread, args=(
         window,), daemon=True).start()
 
+#!have an if event to run gui thread
+
 
 def run_main_page():
-    i = 1
     window = main_page()
-    initial_message(window)
+    # load_gif = window["-Load-"]
     while True:
         event, values = window.read()  # read without time out
 
-        if (event == "-Initial Thread Done-"):
-            window[f'-COL{1}-'].update(visible=False)
-            window[f'-COL{3}-'].update(visible=True)
-            listen(window)
-        # message changes after first 4 seconds
+        # if (event == "-Initial Thread Done-"):
+        #     window[f'-COL{1}-'].update(visible=False)
+        #     window[f'-COL{3}-'].update(visible=True)
+        if event in (sg.WIN_CLOSED, 'Exit'):
+            break
+        elif event == 'Click Me':
+            print(
+                'Thread ALIVE! Long work....sending value')
+            threading.Thread(target=listen_thread, args=(
+                window,), daemon=True).start()
+        elif event == '-Listen Thread Done-':
+            print('Got a message back from the thread: ', values[event])
+            break
+
+        # listen(window)
+        # listen_thread(window)
+
+        # load_gif.update_animation(load_gif.Filename, 30)
 
         # command = voice.listen()
         # print(command)
@@ -133,15 +137,84 @@ def run_main_page():
         #         i += 1
         #         window[f'-COL{i}-'].update(visible=True)
 
-        if event == sg.WIN_CLOSED or event == 'Exit':
-            break
     window.close()
 
 
 run_main_page()
-# retrieve voice input and display
-# gif stuff
-# one letter at a time feature: display command one word at a time
-# create list monsters
-# c, cr, cre ,crea ,creat ,
-# create a layout for each letter
+'''
+import threading
+import time
+import PySimpleGUI as sg
+
+
+"""
+    DESIGN PATTERN - Multithreaded Long Tasks GUI
+    Presents one method for running long-running operations in a PySimpleGUI environment.
+    The PySimpleGUI code, and thus the underlying GUI framework, runs as the primary, main thread
+    The "long work" is contained in the thread that is being started.
+    July 2020 - Note that this program has been updated to use the new Window.write_event_value method.
+    This method has not yet been ported to the other PySimpleGUI ports and is thus limited to the tkinter ports for now.
+    
+    Internally to PySimpleGUI, a queue.Queue is used by the threads to communicate with main GUI code
+    The PySimpleGUI code is structured just like a typical PySimpleGUI program.  A layout defined,
+        a Window is created, and an event loop is executed.
+    This design pattern works for all of the flavors of PySimpleGUI including the Web and also repl.it
+    You'll find a repl.it version here: https://repl.it/@PySimpleGUI/Async-With-Queue-Communicationspy
+"""
+
+
+def long_operation_thread(seconds, window):
+    """
+    A worker thread that communicates with the GUI through a queue
+    This thread can block for as long as it wants and the GUI will not be affected
+    :param seconds: (int) How long to sleep, the ultimate blocking call
+    :param gui_queue: (queue.Queue) Queue to communicate back to GUI that task is completed
+    :return:
+    """
+    print('Starting thread - will sleep for {} seconds'.format(seconds))
+    time.sleep(seconds)                  # sleep for a while
+    # put a message into queue for GUI
+    window.write_event_value('-THREAD-', '** DONE **')
+
+
+def the_gui():
+    """
+    Starts and executes the GUI
+    Reads data from a Queue and displays the data to the window
+    Returns when the user exits / closes the window
+    """
+    sg.theme('Light Brown 3')
+
+    layout = [[sg.Text('Long task to perform example')],
+              [sg.Output(size=(70, 12))],
+              [sg.Text('Number of seconds your task will take'),
+                  sg.Input(key='-SECONDS-', size=(5, 1)),
+                  sg.Button('Do Long Task', bind_return_key=True)],
+              [sg.Button('Click Me'), sg.Button('Exit')], ]
+
+    window = sg.Window('Multithreaded Window', layout)
+
+    # --------------------- EVENT LOOP ---------------------
+    while True:
+        event, values = window.read()
+        if event in (sg.WIN_CLOSED, 'Exit'):
+            break
+        elif event.startswith('Do'):
+            seconds = int(values['-SECONDS-'])
+            print(
+                'Thread ALIVE! Long work....sending value of {} seconds'.format(seconds))
+            threading.Thread(target=long_operation_thread, args=(
+                seconds, window,), daemon=True).start()
+        elif event == 'Click Me':
+            print('Your GUI is alive and well')
+        elif event == '-THREAD-':
+            print('Got a message back from the thread: ', values[event])
+
+    # if user exits the window, then close the window and exit the GUI func
+    window.close()
+
+
+the_gui()
+
+
+'''

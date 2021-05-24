@@ -16,8 +16,6 @@ def list_task_lists():
         task_ids = [item["id"] for item in items]
     else:
         return ("-1")
-    print(task_ids)
-    print(task_lists)
     return task_lists
 
 

@@ -9,27 +9,33 @@ app_id = os.environ.get("api-token")
 client = wolframalpha.Client(app_id)
 
 
-sg.theme("Dark")
-# things inside window
-layout = [[sg.Text("Enter a command"), sg.InputText()],
-          [sg.Text(size=(40, 1), key='-OUTPUT-')],
-          [sg.Button("Ok", bind_return_key=True), sg.Button("Cancel")]]
+def main_page():
+    pass
 
-# creating the window
-window = sg.Window("Tana", layout)
 
-while True:
-    event, values = window.read()
-    if event in (None, "Cancel"):
-        break
-    try:
-        res = client.query(values[0])
-        wolfram_res = next(res.results).text
-        sg.popup_no_wait("Wolfram Result: " + wolfram_res)
-    except BaseException:
+def welcome_page():
+    sg.theme("Dark Blue 3")
+    # things inside window
+    layout = [[sg.Text("Enter a command"), sg.InputText()],
+              [sg.Text(size=(40, 1), key='-OUTPUT-')],
+              [sg.Button("Ok", bind_return_key=True), sg.Button("Cancel")]]
 
-        wiki_res = wikipedia.summary(values[0], sentences=2)
-        sg.popup_no_wait("Wikipedia Result: " + wiki_res)
-        window['-OUTPUT-'].update("Not a valid command")
-# TODO: check how to modularize pysimple guis
-window.close()
+    # creating the window
+    window = sg.Window("Tana", layout)
+
+    while True:
+        event, values = window.read()
+        if event in (None, "Cancel"):
+            break
+        try:
+            res = client.query(values[0])
+            wolfram_res = next(res.results).text
+            sg.popup_no_wait("Wolfram Result: " + wolfram_res)
+        except BaseException:
+
+            wiki_res = wikipedia.summary(values[0], sentences=2)
+            sg.popup_no_wait("Wikipedia Result: " + wiki_res)
+            window['-OUTPUT-'].update("Not a valid command")
+
+    window.close()
+    return False
