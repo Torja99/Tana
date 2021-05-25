@@ -73,19 +73,43 @@ def main_page():
                                                                           key='-COL2-'), sg.Column(layout3, visible=True, key='-COL3-')]]
     return sg.Window("Tana", layout, size=(400, 500), background_color="white", resizable=False, no_titlebar=False, grab_anywhere=True,  finalize=True)
 
+# typewriting: update value in a loo
+# function that splits command into a list of words: list today's tasks: [l,li,lis,list]
+
+
+def split_for_type_writer_effect(string):
+    list = []
+    for index in range(len(string)):
+
+        if index == 0:
+            list.append(string[index])
+        else:
+            list.append(list[index-1] + string[index])
+
+    return list
+
+
+def text_effect_display(text, key, window):
+    DELAY = 0.025  # increase for slower type writer like effect
+    split_list = split_for_type_writer_effect(text)
+
+    for char in split_list:
+        window[key].update(value=char)
+        time.sleep(DELAY)
+
 
 def listen_thread(window):
     command = voice.listen()
-    # print(f"You said: {command}")
+    print(f"You said: {command}")
+
     window["-Response-"].update(value="")
-    window["-Command-"].update(value=command)
+    text_effect_display(command, "-Command-", window)
 
-    response_text = voice.handle_command(command)
     window.write_event_value("-Handle Command Begin-", "")
-    time.sleep(3)  # to slow animation "thinking" effect
-    # print(response_text)
+    response_text = voice.handle_command(command)
+    text_effect_display(response_text, "-Response-", window)
+    # time.sleep(3)  # to slow animation "thinking" effect
 
-    window["-Response-"].update(value=response_text)
     window.write_event_value("-Listen Thread Done-", "")
 
 
@@ -93,62 +117,51 @@ def listen(window):
     threading.Thread(target=listen_thread, args=(
         window,), daemon=True).start()
 
+# TODO:
+# get rid of lag
+# change gif colours and size, and logo size, window size for main page and secondary page
+
 
 def run_main_page():
     window = main_page()
     load_gif = window["-Load-"]
     slow_animate = False
-    # voice.respond("What can I help you with?")
-    # listen(window)
-    i = 0
+    initial = True
+
     while True:
-        event, values = window.read(timeout=10)
+        event = window.read(timeout=10)
 
         if slow_animate:
-            load_gif.update_animation(load_gif.Filename, 50)
+            load_gif.update_animation(
+                load_gif.Filename, time_between_frames=40)
         else:
-            load_gif.update_animation(load_gif.Filename, 30)
+            load_gif.update_animation(
+                load_gif.Filename, time_between_frames=25)
+
+        if initial:
+            voice.respond("What can I help you with?")
+            listen(window)
+            # window[f'-COL{3}-'].update(visible=False)
+            # window[f'-COL{2}-'].update(visible=True)
+            initial = False
 
         if event == "-Handle Command Begin-":
             slow_animate = True
 
-        if i == 0:
-            voice.respond("What can I help you with?")
-            listen(window)
-            i += 1
-
         elif event == '-Listen Thread Done-':
-            print('Got a message back from the thread: ', values[event])
             listen(window)
             slow_animate = False
 
+        # if
         # updating visibility of columns
+
         #     window[f'-COL{1}-'].update(visible=False)
         #     window[f'-COL{3}-'].update(visible=True)
         if event in (sg.WIN_CLOSED, 'Exit'):
             break
-        # elif event == '-Listen Thread Done-':
-        #     print('Got a message back from the thread: ', values[event])
-        #     listen(window)
-
-        # listen(window)
-        # listen_thread(window)
-
-        # if i == 1:
-        #     # print(f"You said: {command}")
-        #     # response_text = voice.handle_command(command)
-        #     # print(response_text)
-
-        #     event, values = window.read(timeout=4000)
-        #     print(event, values)
-        #     if event == sg.WIN_CLOSED or event == 'Exit':
-        #         break
-        #     if i == 1:  # and no voice command has been heard
-        #         window[f'-COL{i}-'].update(visible=False)
-        #         i += 1
-        #         window[f'-COL{i}-'].update(visible=True)
 
     window.close()
 
 
 run_main_page()
+voice.remove_mp3()
