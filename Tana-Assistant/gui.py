@@ -63,7 +63,7 @@ def main_page():
                         justification='right', font=("Calibri", 14), key="-Command-")],
                [sg.Text("", size=(100, 1),  background_color="white",
                         justification='left', font=("Calibri", 14), key="-Response-")],
-               #    [loader]
+               [loader]
 
                ]
 
@@ -91,13 +91,14 @@ def listen(window):
 
 def run_main_page():
     window = main_page()
-    # load_gif = window["-Load-"]
+    load_gif = window["-Load-"]
     # voice.respond("What can I help you with?")
     # listen(window)
     i = 0
     while True:
         event, values = window.read(timeout=10)  # read without time out
 
+        load_gif.update_animation(load_gif.Filename, 10)
         if i == 0:
             voice.respond("What can I help you with?")
             listen(window)
