@@ -2,6 +2,7 @@ import PySimpleGUI as sg
 import auth
 import voice
 import threading
+import time
 
 LOGO = r"C:\Users\lenovo\Dropbox\LearningPython\Tana\Tana-Assistant\assets\tana_logo.png"
 
@@ -74,14 +75,18 @@ def main_page():
 
 
 def listen_thread(window):
-    print("hello")
     command = voice.listen()
-    print(f"You said: {command}")
-    response_text = voice.handle_command(command)
-    print(response_text)
+    # print(f"You said: {command}")
+    window["-Response-"].update(value="")
     window["-Command-"].update(value=command)
+
+    response_text = voice.handle_command(command)
+    window.write_event_value("-Handle Command Begin-", "")
+    time.sleep(3)  # to slow animation "thinking" effect
+    # print(response_text)
+
     window["-Response-"].update(value=response_text)
-    window.write_event_value("-Listen Thread Done-", "DONE")
+    window.write_event_value("-Listen Thread Done-", "")
 
 
 def listen(window):
@@ -92,13 +97,21 @@ def listen(window):
 def run_main_page():
     window = main_page()
     load_gif = window["-Load-"]
+    slow_animate = False
     # voice.respond("What can I help you with?")
     # listen(window)
     i = 0
     while True:
-        event, values = window.read(timeout=10)  # read without time out
+        event, values = window.read(timeout=10)
 
-        load_gif.update_animation(load_gif.Filename, 10)
+        if slow_animate:
+            load_gif.update_animation(load_gif.Filename, 50)
+        else:
+            load_gif.update_animation(load_gif.Filename, 30)
+
+        if event == "-Handle Command Begin-":
+            slow_animate = True
+
         if i == 0:
             voice.respond("What can I help you with?")
             listen(window)
@@ -107,8 +120,9 @@ def run_main_page():
         elif event == '-Listen Thread Done-':
             print('Got a message back from the thread: ', values[event])
             listen(window)
+            slow_animate = False
 
-        # if (event == "-Initial Thread Done-"):
+        # updating visibility of columns
         #     window[f'-COL{1}-'].update(visible=False)
         #     window[f'-COL{3}-'].update(visible=True)
         if event in (sg.WIN_CLOSED, 'Exit'):
@@ -119,14 +133,6 @@ def run_main_page():
 
         # listen(window)
         # listen_thread(window)
-
-        # load_gif.update_animation(load_gif.Filename, 30)
-
-        # command = voice.listen()
-        # print(command)
-        # print(f"You said: {command}")
-        # response_text = voice.handle_command(command)
-        # print(response_text)
 
         # if i == 1:
         #     # print(f"You said: {command}")
