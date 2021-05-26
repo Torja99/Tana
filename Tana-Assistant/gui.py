@@ -73,9 +73,6 @@ def main_page():
                                                                           key='-COL2-'), sg.Column(layout3, visible=True, key='-COL3-')]]
     return sg.Window("Tana", layout, size=(400, 500), background_color="white", resizable=False, no_titlebar=False, grab_anywhere=True,  finalize=True)
 
-# typewriting: update value in a loo
-# function that splits command into a list of words: list today's tasks: [l,li,lis,list]
-
 
 def split_for_type_writer_effect(string):
     list = []
@@ -100,16 +97,20 @@ def text_effect_display(text, key, window):
 
 def listen_thread(window):
     command = voice.listen()
-    print(f"You said: {command}")
-
+    # print(f"You said: {command}")
     window["-Response-"].update(value="")
     text_effect_display(command, "-Command-", window)
+    # window["-Command-"].update(value=command)
 
     window.write_event_value("-Handle Command Begin-", "")
-    response_text = voice.handle_command(command)
-    text_effect_display(response_text, "-Response-", window)
     # time.sleep(3)  # to slow animation "thinking" effect
+    response = voice.handle_command(command)
 
+    # print(response_text)
+
+    # window["-Response-"].update(value=response)
+
+    text_effect_display(response, "-Response-", window)
     window.write_event_value("-Listen Thread Done-", "")
 
 
@@ -117,19 +118,15 @@ def listen(window):
     threading.Thread(target=listen_thread, args=(
         window,), daemon=True).start()
 
-# TODO:
-# get rid of lag
-# change gif colours and size, and logo size, window size for main page and secondary page
-
 
 def run_main_page():
     window = main_page()
     load_gif = window["-Load-"]
     slow_animate = False
-    initial = True
+    initial_query = True
 
     while True:
-        event = window.read(timeout=10)
+        event, values = window.read(timeout=10)
 
         if slow_animate:
             load_gif.update_animation(
@@ -138,30 +135,45 @@ def run_main_page():
             load_gif.update_animation(
                 load_gif.Filename, time_between_frames=25)
 
-        if initial:
-            voice.respond("What can I help you with?")
-            listen(window)
-            # window[f'-COL{3}-'].update(visible=False)
-            # window[f'-COL{2}-'].update(visible=True)
-            initial = False
-
         if event == "-Handle Command Begin-":
             slow_animate = True
+
+        if initial_query:
+            voice.respond("What can I help you with?")
+            listen(window)
+            initial_query = False
 
         elif event == '-Listen Thread Done-':
             listen(window)
             slow_animate = False
 
-        # if
         # updating visibility of columns
-
         #     window[f'-COL{1}-'].update(visible=False)
         #     window[f'-COL{3}-'].update(visible=True)
         if event in (sg.WIN_CLOSED, 'Exit'):
             break
+        # elif event == '-Listen Thread Done-':
+        #     print('Got a message back from the thread: ', values[event])
+        #     listen(window)
+
+        # listen(window)
+        # listen_thread(window)
+
+        # if i == 1:
+        #     # print(f"You said: {command}")
+        #     # response_text = voice.handle_command(command)
+        #     # print(response_text)
+
+        #     event, values = window.read(timeout=4000)
+        #     print(event, values)
+        #     if event == sg.WIN_CLOSED or event == 'Exit':
+        #         break
+        #     if i == 1:  # and no voice command has been heard
+        #         window[f'-COL{i}-'].update(visible=False)
+        #         i += 1
+        #         window[f'-COL{i}-'].update(visible=True)
 
     window.close()
 
 
 run_main_page()
-voice.remove_mp3()
