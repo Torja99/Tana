@@ -4,7 +4,7 @@ import voice
 import threading
 import time
 
-LOGO = r"C:\Users\lenovo\Dropbox\LearningPython\Tana\Tana-Assistant\assets\tana_logo.png"
+LOGO = r"C:\Users\lenovo\Dropbox\LearningPython\Tana\Tana-Assistant\assets\tana_logo_2.png"
 
 
 def welcome_page():
@@ -53,17 +53,17 @@ def main_page():
                ]
 
     logo = sg.Image(LOGO, background_color="white")
-    loader = sg.Image(r"assets\loader.gif",
+    loader = sg.Image(r"assets\test_final_2.gif",
                       background_color="white", key="-Load-")
     layout3 = [[logo],
 
                [sg.Text("What can I help you with?", size=(100, 1),  background_color="white",
-                        justification='left', font=("Calibri", 14))],
+                        justification='left', font=("Calibri", 13))],
 
                [sg.Text("",  size=(100, 1), text_color="grey", background_color="white",
-                        justification='right', font=("Calibri", 14), key="-Command-")],
+                        justification='right', font=("Calibri", 13), key="-Command-")],
                [sg.Text("", size=(100, 1),  background_color="white",
-                        justification='left', font=("Calibri", 14), key="-Response-")],
+                        justification='left', font=("Calibri", 13), key="-Response-")],
                [loader]
 
                ]
@@ -71,7 +71,7 @@ def main_page():
     # ----------- Create actual layout using Columns and a row of Buttons
     layout = [[sg.Column(layout1, visible=False, key='-COL1-'), sg.Column(layout2, visible=False,
                                                                           key='-COL2-'), sg.Column(layout3, visible=True, key='-COL3-')]]
-    return sg.Window("Tana", layout, size=(400, 500), background_color="white", resizable=False, no_titlebar=False, grab_anywhere=True,  finalize=True)
+    return sg.Window("Tana", layout, size=(400, 300), background_color="white", resizable=False, no_titlebar=False, grab_anywhere=True,  finalize=True)
 
 
 def split_for_type_writer_effect(string):
@@ -97,18 +97,12 @@ def text_effect_display(text, key, window):
 
 def listen_thread(window):
     command = voice.listen()
-    # print(f"You said: {command}")
     window["-Response-"].update(value="")
     text_effect_display(command, "-Command-", window)
-    # window["-Command-"].update(value=command)
 
     window.write_event_value("-Handle Command Begin-", "")
     # time.sleep(3)  # to slow animation "thinking" effect
     response = voice.handle_command(command)
-
-    # print(response_text)
-
-    # window["-Response-"].update(value=response)
 
     text_effect_display(response, "-Response-", window)
     window.write_event_value("-Listen Thread Done-", "")
@@ -147,33 +141,18 @@ def run_main_page():
             listen(window)
             slow_animate = False
 
-        # updating visibility of columns
-        #     window[f'-COL{1}-'].update(visible=False)
-        #     window[f'-COL{3}-'].update(visible=True)
         if event in (sg.WIN_CLOSED, 'Exit'):
             break
-        # elif event == '-Listen Thread Done-':
-        #     print('Got a message back from the thread: ', values[event])
-        #     listen(window)
-
-        # listen(window)
-        # listen_thread(window)
-
-        # if i == 1:
-        #     # print(f"You said: {command}")
-        #     # response_text = voice.handle_command(command)
-        #     # print(response_text)
-
-        #     event, values = window.read(timeout=4000)
-        #     print(event, values)
-        #     if event == sg.WIN_CLOSED or event == 'Exit':
-        #         break
-        #     if i == 1:  # and no voice command has been heard
-        #         window[f'-COL{i}-'].update(visible=False)
-        #         i += 1
-        #         window[f'-COL{i}-'].update(visible=True)
 
     window.close()
 
 
 run_main_page()
+
+# TODO:
+# resize and recolor gif
+# resize window
+# test for all the task commands - might need multiline segment for long outputs
+# test for random errors
+# integrate wolfram and wikipedia
+# rename gif
