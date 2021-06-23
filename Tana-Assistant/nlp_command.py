@@ -1,15 +1,6 @@
+from logging import exception
 import spacy
 from spacy.matcher import Matcher
-
-
-nlp = spacy.load("en_core_web_sm")
-
-
-voice_input = "Hey Tana can you make a task help mom with groceries task under mom's groceries"
-doc = nlp(voice_input)
-
-
-matcher = Matcher(nlp.vocab)
 
 
 def get_task_api_command(verb):
@@ -22,97 +13,99 @@ def get_task_api_command(verb):
     try:
         command = command_words[verb]
     except:
-        command = "-1"
+        command = -1
     return command
 
 
-def extract_first_verb(matcher, doc):
-    pattern = [[{"POS": "VERB"}]]
+def get_matches(voice_input):
 
-    matcher.add("get_verb", pattern)
-    matches = matcher(doc)
-    # for match_id, start, end in matches:
-    #     matched_span = doc[start:end]
-    #     return matched_span.text
+    matcher = Matcher(nlp.vocab)
 
-    for match_id, start, end in matches:
-        string_id = nlp.vocab.strings[match_id]  # get string representation
-        span = doc[start:end]  # the matched span
-
-        return match_id, string_id, start, end, span.text
-
-
-#!get the command
-# print(get_task_api_command(verb))
-
-
-def extract_index_last_prep(matcher, doc):
-    pattern = [[{"TAG": "IN"}]]
-    matcher.add("get_prep", pattern)
-    matches = matcher(doc)
-
-    return (matches)[-1][2]  # last preposition's end index
-
-    # return matches[-1][2]
-
-
-def extract_first_key(matcher, doc):
     patterns = [
         [{"TEXT": "list"}],
         [{"TEXT": "lists"}],
         [{"TEXT": "task"}],
         [{"TEXT": "tasks"}],
     ]
-    matcher.add("keyword", patterns)
-    matches = matcher(doc)
-
-    for match_id, start, end in matches:
-        string_id = nlp.vocab.strings[match_id]
-        span = doc[start:end]  # the matched span
-        if (string_id == "keyword"):
-            return start, end, span.text
-
-#!extract out the verb, compare its synonyms to a list of other synonyms (or get siimmilarity)- genertaaes a command, read after key words [task,list] and then get the last preposition if command isn't update
-#!outputs: first verb, first key word, words after key word and before last preposition,  words after last preposition
-
-
-def extract_details(matcher, doc):
-    patterns = [
-        [{"TEXT": "list"}],
-        [{"TEXT": "lists"}],
-        [{"TEXT": "task"}],
-        [{"TEXT": "tasks"}],
-    ]
-    matcher.add("keyword", patterns)
+    matcher.add("key_words", patterns)
 
     pattern = [[{"TAG": "IN"}]]
-    matcher.add("get_prep", pattern)
-    pattern = [[{"POS": "VERB"}]]
+    matcher.add("prepositions", pattern)
 
-    matcher.add("get_verb", pattern)
+    pattern = [[{"POS": "VERB"}]]
+    matcher.add("verbs", pattern)
+
+    pattern = [[{"TEXT": "clear"}]]
+    matcher.add("exceptions", pattern)
+
     matches = matcher(doc)
 
-    details = {"first_verb": [], "key_word": [],
-               "end_index_key_word": [], "index_last_prep": 0}
-
-    # print(matches)
-    for match_id, start, end in matches:
-        string_id = nlp.vocab.strings[match_id]
-        span = doc[start:end]  # the matched span
-        if (len(details["first_verb"]) < 1 and string_id == "get_verb"):
-            details["first_verb"].append(span.text)
-
-        if (len(details["key_word"]) < 1 and string_id == "keyword"):
-            details["key_word"].append(span.text)
-            details["end_index_key_word"].append(end-1)
-
-        if (string_id == "get_prep"):
-            details["index_last_prep"] = end-1
-        # print(start, end, span.text)
+    details = format_matches(matches)
 
     return details
 
 
-details = extract_details(matcher, doc)
+def format_matches(matches):
+    details = {"key_words": [], "verbs": [],
+               "prepositions": [], "exceptions": []}
+    for (match_id, start, end) in matches:
+        string_id = nlp.vocab.strings[match_id]
 
+        match_data = (doc[start:end], start, end)
+        if (string_id == "key_words"):
+            details["key_words"].append(match_data)
+
+        if (string_id == "prepositions"):
+            details["prepositions"].append(match_data)
+
+        if (string_id == "verbs"):
+            details["verbs"].append(match_data)
+
+        if (string_id == "exceptions"):
+            details["exceptions"].append(match_data)
+
+    return details
+
+
+#!change to manipulate details
+def check_details_exceptions(details):
+    if (details["verbs"]):  # check if verbs first entry is good
+        first_verb_text = str(details["verbs"][0][0])
+        command = get_task_api_command(first_verb_text)
+    else:
+        command = -1
+
+    first_key_word_text = str(details["key_words"][0][0])
+    first_key_word = details["key_words"][0]
+    first_key_word_index = details["key_words"][0][1]
+    if (details["exceptions"]):
+        exception = details["exceptions"][0]
+        exception_index = details["exceptions"][0][1]
+
+    if (command == -1):  # first verb no good (either doesn't exist or no verbs at all)
+        if (first_key_word_text == "list"):
+            # insert list as first verb
+            details["verbs"].insert(0, first_key_word)
+            details["key_words"].remove(first_key_word)
+
+        elif(exception_index < first_key_word_index):
+            details["verbs"].insert(0, exception)
+            details["exceptions"].remove(exception)
+            del(exception)
+
+    return details
+
+
+nlp = spacy.load("en_core_web_sm")
+voice_input = (
+    "hey tana create a task called help mom")
+doc = nlp(voice_input)
+details = get_matches(voice_input)
 print(details)
+print(check_details_exceptions(details))
+
+
+#!check to see if the first verb is within the dict
+#! if not then check if list is the first key word (take list as verb )
+#! or if clear is in exceptions and is before the first key word (take clear as verb)
+#! else throw exception
