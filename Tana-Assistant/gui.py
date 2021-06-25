@@ -24,15 +24,14 @@ def run_welcome_page(creds, SCOPES):
     window = welcome_page()
 
     while True:  # Event Loop
-        event = window.read()
-        if (event == sg.WIN_CLOSED):
-            window.close()
-            break
+        event, values = window.read()
         if (event == "Sign In"):
-            window.close()
             auth.auth_flow(creds, SCOPES)
-            run_main_page()
             break
+        if event == sg.WIN_CLOSED:
+            break
+    window.close()
+    run_main_page()
 
 
 def main_page():
@@ -141,18 +140,7 @@ def run_main_page():
             listen(window)
             slow_animate = False
 
-        if event in (sg.WIN_CLOSED, 'Exit'):
+        if event == sg.WIN_CLOSED:
             break
 
     window.close()
-
-
-run_main_page()
-
-# TODO:
-# resize and recolor gif
-# resize window
-# test for all the task commands - might need multiline segment for long outputs
-# test for random errors
-# integrate wolfram and wikipedia
-# rename gif

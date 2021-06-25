@@ -1,4 +1,3 @@
-from logging import exception
 import spacy
 from spacy.matcher import Matcher
 
@@ -17,7 +16,7 @@ def get_task_api_command(verb):
     return command
 
 
-def get_matches(voice_input):
+def get_matches(doc):
 
     matcher = Matcher(nlp.vocab)
 
@@ -29,25 +28,35 @@ def get_matches(voice_input):
     ]
     matcher.add("key_words", patterns)
 
-    pattern = [[{"TAG": "IN"}]]
+    pattern = [[{"POS": "ADP"}]]
     matcher.add("prepositions", pattern)
 
     pattern = [[{"POS": "VERB"}]]
     matcher.add("verbs", pattern)
 
-    pattern = [[{"TEXT": "clear"}]]
+    pattern = [
+        [{"TEXT": "clear"}],
+        [{"TEXT": "update"}]
+    ]
     matcher.add("exceptions", pattern)
 
     matches = matcher(doc)
 
-    details = format_matches(matches)
+    details = format_matches(doc, matches)
 
     return details
 
 
-def format_matches(matches):
+def get_dates(doc):  # dates is a list
+    for ent in doc.ents:
+        if (ent.label_ == "DATE"):
+            return ent.text
+
+
+def format_matches(doc, matches):
     details = {"key_words": [], "verbs": [],
-               "prepositions": [], "exceptions": []}
+               "prepositions": [], "exceptions": [], "date": ""}
+
     for (match_id, start, end) in matches:
         string_id = nlp.vocab.strings[match_id]
 
@@ -64,10 +73,11 @@ def format_matches(matches):
         if (string_id == "exceptions"):
             details["exceptions"].append(match_data)
 
+    details["date"] = get_dates(doc)
+
     return details
 
 
-#!change to manipulate details
 def check_details_exceptions(details):
     if (details["verbs"]):  # check if verbs first entry is good
         first_verb_text = str(details["verbs"][0][0])
@@ -86,26 +96,23 @@ def check_details_exceptions(details):
         if (first_key_word_text == "list"):
             # insert list as first verb
             details["verbs"].insert(0, first_key_word)
-            details["key_words"].remove(first_key_word)
 
         elif(exception_index < first_key_word_index):
             details["verbs"].insert(0, exception)
             details["exceptions"].remove(exception)
-            del(exception)
+            # del(exception)
+
+    # verb can not be a key word
+
+    if (details["verbs"][0] == first_key_word):
+        details["key_words"].remove(first_key_word)
 
     return details
 
 
+def test_print(doc):
+    for token in doc:
+        print(token.pos_, token.tag_)
+
+
 nlp = spacy.load("en_core_web_sm")
-voice_input = (
-    "hey tana create a task called help mom")
-doc = nlp(voice_input)
-details = get_matches(voice_input)
-print(details)
-print(check_details_exceptions(details))
-
-
-#!check to see if the first verb is within the dict
-#! if not then check if list is the first key word (take list as verb )
-#! or if clear is in exceptions and is before the first key word (take clear as verb)
-#! else throw exception

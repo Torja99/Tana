@@ -14,6 +14,7 @@ def list_task_lists():
     if items:
         task_lists = [item["title"] for item in items]
         task_ids = [item["id"] for item in items]
+        print(task_ids)
     else:
         return ("-1")
     return task_lists
@@ -37,13 +38,12 @@ def get_task_list_id(task_list_title=None):
     return (task_list_id)
 
 
-# gets id of  first task matching that task title
 def get_task_info_from_task_title(task_title):
-    # get
     tasks_info = {
         "id": [], "list_id": []}
-    task_list_id = get_task_list_id(task_title)
+    task_list_id = get_task_list_id()  # start with the first task list id
     task_lists = service.tasklists().list().execute()
+
     for task_list in task_lists["items"]:
         task_list_id = task_list["id"]
         tasks = service.tasks().list(tasklist=task_list_id, showCompleted=False).execute()
@@ -52,12 +52,14 @@ def get_task_info_from_task_title(task_title):
         if "items" in tasks:
             for task in tasks["items"]:
                 if task["title"] == task_title:
+                    url_parsed = urlparse(task["selfLink"])
+                    task_list_id = url_parsed.path.split("/")[4]
+                    tasks_info["list_id"] = task_list_id
+
                     tasks_info["id"] = task["id"]
                     break
-        if tasks_info["list_id"]:
-            break
-    tasks_info["list_id"] = task_list_id
     return tasks_info
+
 
 
 def get_task_info_from_task_list_and_task_title(task_title, task_list_title):
@@ -83,7 +85,6 @@ return tasks titles under a task list
 
 
 def list_tasks(task_list_title):
-    # may need to update to include id information
     tasks_info = {
         "id": [], "title": []}
     task_list_id = get_task_list_id(task_list_title)
@@ -228,9 +229,12 @@ def clear_all_tasks_from_task_list(task_list_title):
 def clear_task(task_title):
     task_info = get_task_info_from_task_title(task_title)
     task_id, task_list_id = task_info["id"], task_info["list_id"]
+    print(task_info)
+    # print(list_task_lists())
 
     body = {"id": task_id, "title": task_title,
             "status": "completed"}
+    # print(body)
     service.tasks().update(
         tasklist=task_list_id, task=task_id, body=body).execute()
     # find matching title
@@ -245,3 +249,49 @@ def clear_task_from_list(task_title, task_list_title):
             "status": "completed"}
     service.tasks().update(
         tasklist=task_list_id, task=task_id, body=body).execute()
+
+
+# update_due_task()
+
+'''
+
+Create task help mom with groceries under mom's groceries 
+Create task apples in groceries - put a task under a task list
+Create task get the doll under the table under help brother
+Create list help mom 
+Create list help
+Create a list called help mom 
+
+Above keys: 
+Task 
+List 
+in, under 
+_____
+List my tasks (from, under, in) mom's groceries
+hey tana List  tasks (from, under, in) mom's groceries
+List today's tasks
+List tasks for today
+
+
+Above keys:
+tasks, task
+from, under,in 
+
+-----
+Update my tasks
+Update tasks
+
+------
+Clear tasks from today 
+Clear today's tasks
+Clear all tasks from today
+Clear all tasks
+Clear tasks (from, under, in) list Mom's groceries
+Clear {task title=get groceries}
+keys: 
+all - first word in rest
+from, under, in - after word task
+
+------
+
+'''
