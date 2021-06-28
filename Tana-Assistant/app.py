@@ -1,8 +1,10 @@
 from __future__ import print_function
 import os.path
 from google.oauth2.credentials import Credentials
+from gtts.tts import gTTSError
 from gui import run_welcome_page
 from gui import run_main_page
+from voice import remove_mp3
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/tasks']
 # TODO: change to use main file https://dev.to/codemouse92/dead-simple-python-project-structure-and-imports-38c6
@@ -24,6 +26,7 @@ def main():
         run_welcome_page(creds, SCOPES)
     else:
         run_main_page()
+        remove_mp3()
 
 
 if __name__ == '__main__':

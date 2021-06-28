@@ -6,12 +6,21 @@ from playsound import playsound
 import glob
 import tasks
 import nlp_command as nc
+import logging
+import wolfram
+
+log = logging.getLogger(__name__)
+logging.basicConfig(format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
+                    datefmt='%Y-%m-%d:%H:%M:%S',
+                    level=logging.INFO)
+
+logger = logging.getLogger(__name__)
 
 
 def remove_mp3():
-    dir_path = os.path.dirname(os.path.realpath(__file__))
+    dir_path = f"{os.path.dirname(os.path.realpath(__file__))}\\temp-audio"
     for fl in glob.glob(dir_path+"\\*.mp3"):
-        print(fl)
+        log.info(f"removed: {fl}")
         # Do what you want with the file
         os.remove(fl)
 
@@ -22,7 +31,7 @@ def respond(audio_text):
     id = str(ctime()).split(":")
     id = " ".join(id)
     id = id.replace(" ", "")
-    file_name = id + "_speech.mp3"
+    file_name = f"temp-audio/{id}_speech.mp3"
 
     tts.save(file_name)
     playsound(file_name)
@@ -31,12 +40,11 @@ def respond(audio_text):
 def listen():
     r = sr.Recognizer()
     with sr.Microphone() as source:
-        print("I am listening...")
+        log.info("I am listening...")
         audio = r.listen(source)
     command = ""
     try:
         command = r.recognize_google(audio)
-        # print("You said: " + command)  # remove after
     except sr.UnknownValueError:
         return "Audio Error"
     except sr.RequestError as e:
@@ -51,24 +59,16 @@ def numbered_list(list):
 # check if diff permutations of task list are in list of tasks and return an appropriate one
 
 
-def task_list_verifier(task_list_title):
-    task_list_titles = tasks.list_task_lists()
-
-    if(task_list_title.title() in task_list_titles):
-        task_list_title = task_list_title.title()
-    elif (task_list_title.lower() in task_list_titles):
-        task_list_title = task_list_title.lower()
-    elif(task_list_title.upper() in task_list_titles):
-        task_list_title = task_list_title.upper()
-    else:
-        task_list_title = None
-    return task_list_title
-
-
-
 def handle_command(command):
+    log.info(f"Command: {command}")
 
-    if (len(command) <= 2):  # need at least 3 words in command to unpack
+    if (command == "goodbye" or command == "stop"):
+        response = "Goodbye!"
+        respond(response)
+        return response
+
+    # need at least 3 words in command to unpack
+    if (command == "Audio Error" or len(command.split()) <= 2):
         response = "Sorry didn't get that"
         respond(response)
         return response
@@ -77,16 +77,24 @@ def handle_command(command):
 
     doc = nlp(command)
     details = nc.get_matches(doc)
+    if(not details["verbs"]):
+        #!QUERY WIKIPEDIA/WOLFRAM
+        response = wolfram.wolfram_query(command)
+        respond(response)
+        return response
+
     first_verb_text = str(details["verbs"][0][0])
     action = nc.get_task_api_command(first_verb_text)
 
-    if (details["key_words"]):
+    if (action == -1 or not details["key_words"]):
+        response = wolfram.wolfram_query(command)
+        respond(response)
+        return response
 
-        details = nc.check_details_exceptions(details)
+    details = nc.check_details_exceptions(details)
+    log.info(details)
 
-        print(details)
-
-    #!no valid actions change to running the wiki/wolfram command
+    #!can get rid of this if statement
     if (action == -1):
 
         response = "Sorry didn't get that"
@@ -110,7 +118,7 @@ def handle_command(command):
 
                 task_list_title = str(doc[end_index_last_prep:])
 
-                task_list_title = task_list_verifier(task_list_title)
+                task_list_title = tasks.task_list_verifier(task_list_title)
 
                 if (task_list_title):
                     response_list = (
@@ -135,7 +143,7 @@ def handle_command(command):
 
                 task_list_title = str(doc[end_index_last_prep:])
 
-                task_list_title = task_list_verifier(task_list_title)
+                task_list_title = tasks.task_list_verifier(task_list_title)
                 if (task_list_title):
                     task_title = str(
                         doc[first_key_word_index:end_index_last_prep-1])
@@ -191,7 +199,7 @@ def handle_command(command):
 
                     task_list_title = str(doc[end_index_last_prep:])
 
-                    task_list_title = task_list_verifier(task_list_title)
+                    task_list_title = tasks.task_list_verifier(task_list_title)
                     if (task_list_title):
                         task_title = str(
                             doc[first_key_word_index:end_index_last_prep-1])
@@ -219,7 +227,7 @@ def handle_command(command):
 
                     task_list_title = str(doc[end_index_last_prep:])
 
-                    task_list_title = task_list_verifier(task_list_title)
+                    task_list_title = tasks.task_list_verifier(task_list_title)
 
                     if (task_list_title):
                         tasks.clear_all_tasks_from_task_list(task_list_title)
@@ -267,5 +275,3 @@ def handle_command(command):
             response = "Sorry didn't get that"
             respond(response)
             return response
-
-

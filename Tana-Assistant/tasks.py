@@ -14,7 +14,6 @@ def list_task_lists():
     if items:
         task_lists = [item["title"] for item in items]
         task_ids = [item["id"] for item in items]
-        print(task_ids)
     else:
         return ("-1")
     return task_lists
@@ -59,7 +58,6 @@ def get_task_info_from_task_title(task_title):
                     tasks_info["id"] = task["id"]
                     break
     return tasks_info
-
 
 
 def get_task_info_from_task_list_and_task_title(task_title, task_list_title):
@@ -229,15 +227,11 @@ def clear_all_tasks_from_task_list(task_list_title):
 def clear_task(task_title):
     task_info = get_task_info_from_task_title(task_title)
     task_id, task_list_id = task_info["id"], task_info["list_id"]
-    print(task_info)
-    # print(list_task_lists())
 
     body = {"id": task_id, "title": task_title,
-            "status": "completed"}
-    # print(body)
+            "status": "completed", "deleted": False, "due": str(pendulum.today())}
     service.tasks().update(
         tasklist=task_list_id, task=task_id, body=body).execute()
-    # find matching title
 
 
 def clear_task_from_list(task_title, task_list_title):
@@ -251,7 +245,19 @@ def clear_task_from_list(task_title, task_list_title):
         tasklist=task_list_id, task=task_id, body=body).execute()
 
 
-# update_due_task()
+def task_list_verifier(task_list_title):
+    task_list_titles = list_task_lists()
+
+    if(task_list_title.title() in task_list_titles):
+        task_list_title = task_list_title.title()
+    elif (task_list_title.lower() in task_list_titles):
+        task_list_title = task_list_title.lower()
+    elif(task_list_title.upper() in task_list_titles):
+        task_list_title = task_list_title.upper()
+    else:
+        task_list_title = None
+    return task_list_title
+
 
 '''
 

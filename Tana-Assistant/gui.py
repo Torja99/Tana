@@ -52,7 +52,7 @@ def main_page():
                ]
 
     logo = sg.Image(LOGO, background_color="white")
-    loader = sg.Image(r"assets\test_final_2.gif",
+    loader = sg.Image(r"assets\loader.gif",
                       background_color="white", key="-Load-")
     layout3 = [[logo],
 
@@ -96,14 +96,25 @@ def text_effect_display(text, key, window):
 
 def listen_thread(window):
     command = voice.listen()
-    window["-Response-"].update(value="")
+    if (command == "Audio Error"):  # if audio error (usually stalled input) just keep waiting
+        window.write_event_value("-Listen Thread Done-", "")
+        return
+    # window["-Response-"].update(value="")
+
     text_effect_display(command, "-Command-", window)
 
     window.write_event_value("-Handle Command Begin-", "")
-    # time.sleep(3)  # to slow animation "thinking" effect
     response = voice.handle_command(command)
 
+    if (response == "Goodbye!"):
+        text_effect_display(response, "-Response-", window)
+        time.sleep(1)
+        window.write_event_value(sg.WINDOW_CLOSED, "")
+
     text_effect_display(response, "-Response-", window)
+    time.sleep(4)  # time for user to read answer before it is erased
+    window["-Command-"].update(value="")
+    window["-Response-"].update(value="")
     window.write_event_value("-Listen Thread Done-", "")
 
 
@@ -132,6 +143,7 @@ def run_main_page():
             slow_animate = True
 
         if initial_query:
+
             voice.respond("What can I help you with?")
             listen(window)
             initial_query = False

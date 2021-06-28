@@ -110,9 +110,5 @@ def check_details_exceptions(details):
     return details
 
 
-def test_print(doc):
-    for token in doc:
-        print(token.pos_, token.tag_)
-
 
 nlp = spacy.load("en_core_web_sm")

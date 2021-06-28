@@ -39,3 +39,6 @@ def welcome_page():
 
     window.close()
     return False
+
+
+welcome_page()
