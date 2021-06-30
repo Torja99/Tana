@@ -39,16 +39,19 @@ def respond(audio_text):
 
 def listen():
     r = sr.Recognizer()
-    with sr.Microphone() as source:
-        log.info("I am listening...")
-        audio = r.listen(source)
-    command = ""
+    try:
+        with sr.Microphone() as source:
+            log.info("I am listening...")
+            audio = r.listen(source)
+        command = ""
+    except OSError as ex:
+        return "Device Error; {0}".format(ex)
     try:
         command = r.recognize_google(audio)
     except sr.UnknownValueError:
         return "Audio Error"
-    except sr.RequestError as e:
-        return "Request Failed; {0}".format(e)
+    except sr.RequestError as ex:
+        return "Request Failed; {0}".format(ex)
     return command
 
 

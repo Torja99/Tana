@@ -1,10 +1,13 @@
 from urllib.parse import urlparse
 from wave import Error
 import pendulum
+import os.path
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 SCOPES = ['https://www.googleapis.com/auth/tasks']
+#!NEEDS creds before they are built but can only build creds
 creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+
 service = build('tasks', 'v1', credentials=creds)
 
 

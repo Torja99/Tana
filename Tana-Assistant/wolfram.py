@@ -8,7 +8,9 @@ client = wolframalpha.Client(app_id)
 
 def wolfram_query(question):
     response = client.query(question)
-    wolfram_res = next(response.results).text
+    try:
+        wolfram_res = next(response.results).text
+    except Exception as ex:
+        print(ex)
+        return ("Sorry I don't know that")
     return wolfram_res
-
-

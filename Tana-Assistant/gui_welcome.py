@@ -1,3 +1,4 @@
+import threading
 import auth
 import PySimpleGUI as sg
 LOGO = r"C:\Users\lenovo\Dropbox\LearningPython\Tana\Tana-Assistant\assets\tana_logo_2.png"
@@ -16,22 +17,24 @@ def welcome_page():
         300, 200), resizable=False, no_titlebar=False, grab_anywhere=True, background_color="white", finalize=True))
 
 
+def sign_thread(window, creds, SCOPES):
+    auth.auth_flow(creds, SCOPES)
+    window.write_event_value("-Done-", "")
+
+
+def sign_in(window, creds, SCOPES):
+    threading.Thread(target=sign_thread, args=(
+        window, creds, SCOPES), daemon=True).start()
+
+
 def run_welcome_page(creds, SCOPES):
     window = welcome_page()
 
     while True:  # Event Loop
         event, values = window.read()
         if (event == "Sign In"):
-            try:
-                auth.auth_flow(creds, SCOPES)
-            except Exception as ex:
-                template = "An exception of type {0} occurred. Arguments:\n{1!r}"
-                message = template.format(type(ex).__name__, ex.args)
-                print(message)
-                #!CHANGE TO POPUP WINDOW
-            finally:
-                break
-        if event == sg.WIN_CLOSED:
+            sign_in(window, creds, SCOPES)
+
+        if event == sg.WIN_CLOSED or event == "-Done-":
             break
     window.close()
-    # run_main_page()
