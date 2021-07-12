@@ -2,6 +2,7 @@ import PySimpleGUI as sg
 import voice
 import threading
 import time
+import file_handler
 
 LOGO = r"C:\Users\lenovo\Dropbox\LearningPython\Tana\Tana-Assistant\assets\tana_logo_2.png"
 
@@ -39,7 +40,6 @@ def main_page():
 
                ]
 
-    # ----------- Create actual layout using Columns and a row of Buttons
     layout = [[sg.Column(layout1, visible=False, key='-COL1-'), sg.Column(layout2, visible=False,
                                                                           key='-COL2-'), sg.Column(layout3, visible=True, key='-COL3-')]]
     return sg.Window("Tana", layout, size=(400, 300), background_color="white", resizable=False, no_titlebar=False, grab_anywhere=True,  finalize=True)
@@ -52,7 +52,7 @@ def split_for_type_writer_effect(string):
         if index == 0:
             list.append(string[index])
         else:
-            list.append(list[index-1] + string[index])
+            list.append(f"{list[index-1]} {string[index]}")
 
     return list
 
@@ -107,7 +107,7 @@ def run_main_page():
     slow_animate = False
     initial_query = True
 
-    while True:
+    while 1:
         event, values = window.read(timeout=10)
 
         if slow_animate:

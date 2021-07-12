@@ -1,32 +1,14 @@
 import speech_recognition as sr
 from time import ctime
-import os
 from gtts import gTTS
 from playsound import playsound
-import glob
 import tasks
 import nlp_command as nc
-import logging
 import wolfram
-
-log = logging.getLogger(__name__)
-logging.basicConfig(format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
-                    datefmt='%Y-%m-%d:%H:%M:%S',
-                    level=logging.INFO)
-
-logger = logging.getLogger(__name__)
-
-
-def remove_mp3():
-    dir_path = f"{os.path.dirname(os.path.realpath(__file__))}\\temp-audio"
-    for fl in glob.glob(dir_path+"\\*.mp3"):
-        log.info(f"removed: {fl}")
-        # Do what you want with the file
-        os.remove(fl)
+import custom_logger
 
 
 def respond(audio_text):
-    # plays audio text and responds with it
     tts = gTTS(text=audio_text, lang='en')
     id = str(ctime()).split(":")
     id = " ".join(id)
@@ -41,17 +23,17 @@ def listen():
     r = sr.Recognizer()
     try:
         with sr.Microphone() as source:
-            log.info("I am listening...")
+            custom_logger.log.info("I am listening...")
             audio = r.listen(source)
         command = ""
     except OSError as ex:
-        return "Device Error; {0}".format(ex)
+        return f"Device Error; {ex}"
     try:
         command = r.recognize_google(audio)
     except sr.UnknownValueError:
         return "Audio Error"
     except sr.RequestError as ex:
-        return "Request Failed; {0}".format(ex)
+        return f"Request Failed; {ex}"
     return command
 
 
@@ -59,11 +41,9 @@ def numbered_list(list):
     numbered_list = [f"{i+1} { list[i]}" for i in range(len(list))]
     return numbered_list
 
-# check if diff permutations of task list are in list of tasks and return an appropriate one
-
 
 def handle_command(command):
-    log.info(f"Command: {command}")
+    custom_logger.log.info(f"Command: {command}")
 
     if (command == "goodbye" or command == "stop"):
         response = "Goodbye!"
@@ -81,7 +61,6 @@ def handle_command(command):
     doc = nlp(command)
     details = nc.get_matches(doc)
     if(not details["verbs"]):
-        #!QUERY WIKIPEDIA/WOLFRAM
         response = wolfram.wolfram_query(command)
         respond(response)
         return response
@@ -95,7 +74,7 @@ def handle_command(command):
         return response
 
     details = nc.check_details_exceptions(details)
-    log.info(details)
+    custom_logger.log.info(details)
 
     #!can get rid of this if statement
     if (action == -1):
@@ -278,3 +257,6 @@ def handle_command(command):
             response = "Sorry didn't get that"
             respond(response)
             return response
+
+
+handle_command("create a new task help mom groceries")

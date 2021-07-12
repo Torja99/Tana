@@ -30,7 +30,7 @@ def sign_in(window, creds, SCOPES):
 def run_welcome_page(creds, SCOPES):
     window = welcome_page()
 
-    while True:  # Event Loop
+    while 1:
         event, values = window.read()
         if (event == "Sign In"):
             sign_in(window, creds, SCOPES)
