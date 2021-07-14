@@ -1,5 +1,6 @@
 import spacy
 from spacy.matcher import Matcher
+import custom_logger
 
 
 def get_task_api_command(verb):
@@ -79,6 +80,9 @@ def format_matches(doc, matches):
 
 
 def check_details_exceptions(details):
+    if (not details["key_words"]):
+        return details
+
     if (details["verbs"]):  # check if verbs first entry is good
         first_verb_text = str(details["verbs"][0][0])
         command = get_task_api_command(first_verb_text)
@@ -108,7 +112,6 @@ def check_details_exceptions(details):
         details["key_words"].remove(first_key_word)
 
     return details
-
 
 
 nlp = spacy.load("en_core_web_sm")

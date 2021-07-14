@@ -205,7 +205,7 @@ def clear_todays_tasks():
 
     for i in range(len(todays_task_lists_ids)):
         body = {"id": todays_tasks_ids[i], "title": todays_tasks_titles[i],
-                "status": "completed"}
+                "status": "completed", "deleted": False, "due": str(pendulum.today())}
         service.tasks().update(
             tasklist=todays_task_lists_ids[i], task=todays_tasks_ids[i], body=body).execute()
 
@@ -218,7 +218,7 @@ def clear_all_tasks_from_task_list(task_list_title):
     task_titles = task_info["title"]
     for i in range(len(task_ids)):
         body = {"id": task_ids[i], "title": task_titles[i],
-                "status": "completed"}
+                "status": "completed", "deleted": False, "due": str(pendulum.today())}
         service.tasks().update(
             tasklist=task_list_id, task=task_ids[i], body=body).execute()
 
@@ -259,7 +259,6 @@ def task_list_verifier(task_list_title):
     return task_list_title
 
 
-update_due_task()
 '''
 
 Create task help mom with groceries under mom's groceries 

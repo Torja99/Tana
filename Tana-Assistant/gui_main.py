@@ -142,7 +142,7 @@ def run_main_page():
         elif event == '-Listen Thread Done-':
             listen(window)
             slow_animate = False
-            break
+            # break
 
         if event == sg.WIN_CLOSED:
             break

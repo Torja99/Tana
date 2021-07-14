@@ -60,7 +60,18 @@ def handle_command(command):
 
     doc = nlp(command)
     details = nc.get_matches(doc)
-    if(not details["verbs"]):
+    custom_logger.log.info(f"details:{details}")
+
+    # if(not details["verbs"]):
+    #     response = wolfram.wolfram_query(command)
+    #     respond(response)
+    #     return response
+
+    details = nc.check_details_exceptions(details)
+    custom_logger.log.info(details)
+
+    #!when key words or verbs are empty send it to wolfram (the verb case is handled in check detials exceptions command)
+    if (not details["key_words"]):
         response = wolfram.wolfram_query(command)
         respond(response)
         return response
@@ -68,59 +79,100 @@ def handle_command(command):
     first_verb_text = str(details["verbs"][0][0])
     action = nc.get_task_api_command(first_verb_text)
 
-    if (action == -1 or not details["key_words"]):
-        response = wolfram.wolfram_query(command)
-        respond(response)
-        return response
-
-    details = nc.check_details_exceptions(details)
-    custom_logger.log.info(details)
-
     #!can get rid of this if statement
-    if (action == -1):
 
-        response = "Sorry didn't get that"
-        respond(response)
-        return response
+    if (action == "List"):
+        if (details["date"]):
 
-    else:
+            response_list = (tasks.list_tasks_time()["title"])
+            response_list_numbered = numbered_list(response_list)
+            response_string = ", ".join(response_list_numbered)
+            response = f"Today's tasks are {response_string}"
+            respond(response)
+            return response
 
-        if (action == "List"):
-            if (details["date"]):
+        elif(details["prepositions"]):
+            end_index_last_prep = details["prepositions"][-1][2]
 
-                response_list = (tasks.list_tasks_time()["title"])
+            task_list_title = str(doc[end_index_last_prep:])
+
+            task_list_title = tasks.task_list_verifier(task_list_title)
+
+            if (task_list_title):
+                response_list = (
+                    tasks.list_tasks(task_list_title)["title"])
                 response_list_numbered = numbered_list(response_list)
                 response_string = ", ".join(response_list_numbered)
-                response = f"Today's tasks are {response_string}"
+                response = f"Tasks from {task_list_title} include {response_string}"
+                respond(response)
+                return response
+            else:
+                response = "Invalid task list name"
                 respond(response)
                 return response
 
-            elif(details["prepositions"]):
-                end_index_last_prep = details["prepositions"][-1][2]
+    elif (action == "Create"):
 
-                task_list_title = str(doc[end_index_last_prep:])
+        first_key_word_index = details["key_words"][0][2]
+        key_word_text = str(details["key_words"][0][0])
 
-                task_list_title = tasks.task_list_verifier(task_list_title)
+        if(details["prepositions"]):
+            end_index_last_prep = details["prepositions"][-1][2]
 
-                if (task_list_title):
-                    response_list = (
-                        tasks.list_tasks(task_list_title)["title"])
-                    response_list_numbered = numbered_list(response_list)
-                    response_string = ", ".join(response_list_numbered)
-                    response = f"Tasks from {task_list_title} include {response_string}"
-                    respond(response)
-                    return response
-                else:
-                    response = "Invalid task list name"
-                    respond(response)
-                    return response
+            task_list_title = str(doc[end_index_last_prep:])
 
-        elif (action == "Create"):
+            task_list_title = tasks.task_list_verifier(task_list_title)
+            if (task_list_title):
+                task_title = str(
+                    doc[first_key_word_index:end_index_last_prep-1])
 
-            first_key_word_index = details["key_words"][0][2]
-            key_word_text = str(details["key_words"][0][0])
+                tasks.create_task(task_title, task_list_title)
+                response = f"New task {task_title} under list {task_list_title} created"
+                respond(response)
+                return response
 
-            if(details["prepositions"]):
+            else:
+                response = "Invalid list name"
+                respond(response)
+            return response
+
+        elif(key_word_text == "task"):
+
+            task_title = str(doc[first_key_word_index:])
+
+            if (task_title):
+                tasks.create_task(task_title)
+
+                response = f"New task {task_title} created"
+                respond(response)
+                return response
+            else:
+                response = "Invalid task name"
+                respond(response)
+                return response
+
+        elif(key_word_text == "list"):
+
+            task_list_title = str(doc[first_key_word_index:]).title()
+
+            if (task_list_title):
+                tasks.create_task_list(task_list_title)
+
+                response = f"New list {task_list_title} created"
+                respond(response)
+                return response
+            else:
+                response = "Invalid list name"
+                respond(response)
+                return response
+
+    elif (action == "Clear"):
+        first_key_word_index = details["key_words"][0][2]
+        key_word_text = str(details["key_words"][0][0])
+
+        if(details["prepositions"]):
+
+            if (key_word_text == "task"):
                 end_index_last_prep = details["prepositions"][-1][2]
 
                 task_list_title = str(doc[end_index_last_prep:])
@@ -130,133 +182,78 @@ def handle_command(command):
                     task_title = str(
                         doc[first_key_word_index:end_index_last_prep-1])
 
-                    tasks.create_task(task_title, task_list_title)
-                    response = f"New task {task_title} under list {task_list_title} created"
+                    tasks.clear_task_from_list(task_title, task_list_title)
+                    response = f"Task {task_title} cleared from {task_list_title}"
                     respond(response)
                     return response
 
                 else:
-                    response = "Invalid list name"
-                    respond(response)
-                return response
-
-            elif(key_word_text == "task"):
-
-                task_title = str(doc[first_key_word_index:])
-
-                if (task_title):
-                    tasks.create_task(task_title)
-
-                    response = f"New task {task_title} created"
-                    respond(response)
-                    return response
-                else:
-                    response = "Invalid task name"
-                    respond(response)
-                    return response
-
-            elif(key_word_text == "list"):
-
-                task_list_title = str(doc[first_key_word_index:]).title()
-
-                if (task_list_title):
-                    tasks.create_task_list(task_list_title)
-
-                    response = f"New list {task_list_title} created"
-                    respond(response)
-                    return response
-                else:
-                    response = "Invalid list name"
-                    respond(response)
-                    return response
-
-        elif (action == "Clear"):
-            first_key_word_index = details["key_words"][0][2]
-            key_word_text = str(details["key_words"][0][0])
-
-            if(details["prepositions"]):
-
-                if (key_word_text == "task"):
-                    end_index_last_prep = details["prepositions"][-1][2]
-
-                    task_list_title = str(doc[end_index_last_prep:])
-
-                    task_list_title = tasks.task_list_verifier(task_list_title)
-                    if (task_list_title):
-                        task_title = str(
-                            doc[first_key_word_index:end_index_last_prep-1])
-
-                        tasks.clear_task_from_list(task_title, task_list_title)
-                        response = f"Task {task_title} cleared from {task_list_title}"
-                        respond(response)
-                        return response
-
-                    else:
-                        if (key_word_text == "task"):
-                            task_title = str(doc[first_key_word_index:])
-                            if (task_title):
-                                tasks.clear_task(task_title)
-                                response = f"Task {task_title} cleared"
-                                respond(response)
-                                return response
-                            else:
-                                response = "Invalid task name"
-                                respond(response)
-                                return response
-
-                if (key_word_text == "tasks"):
-                    end_index_last_prep = details["prepositions"][-1][2]
-
-                    task_list_title = str(doc[end_index_last_prep:])
-
-                    task_list_title = tasks.task_list_verifier(task_list_title)
-
-                    if (task_list_title):
-                        tasks.clear_all_tasks_from_task_list(task_list_title)
-                        response = f"Tasks from {task_list_title} cleared"
-                        respond(response)
-                        return response
-                    else:
-                        response = "Invalid task list name"
-                        respond(response)
-                        return response
+                    if (key_word_text == "task"):
+                        task_title = str(doc[first_key_word_index:])
+                        if (task_title):
+                            tasks.clear_task(task_title)
+                            response = f"Task {task_title} cleared"
+                            respond(response)
+                            return response
+                        else:
+                            response = "Invalid task name"
+                            respond(response)
+                            return response
 
             if (key_word_text == "tasks"):
-                if(details["date"]):
-                    tasks.clear_todays_tasks()
-                    response = "Today's tasks cleared"
-                    respond(response)
-                    return response
+                end_index_last_prep = details["prepositions"][-1][2]
 
-                else:
-                    response = "Sorry didn't get that"
-                    respond(response)
-                    return response
+                task_list_title = str(doc[end_index_last_prep:])
 
-            if (key_word_text == "task"):
-                task_title = str(doc[first_key_word_index:])
-                if (task_title):
-                    tasks.clear_task(task_title)
-                    response = f"Task {task_title} cleared"
+                task_list_title = tasks.task_list_verifier(task_list_title)
+
+                if (task_list_title):
+                    tasks.clear_all_tasks_from_task_list(task_list_title)
+                    response = f"Tasks from {task_list_title} cleared"
                     respond(response)
                     return response
                 else:
-                    response = "Invalid task name"
+                    response = "Invalid task list name"
                     respond(response)
                     return response
 
-        elif (action == "Update"):
+        if (key_word_text == "tasks"):
+            if(details["date"]):
+                tasks.clear_todays_tasks()
+                response = "Today's tasks cleared"
+                respond(response)
+                return response
 
-            tasks.update_due_task()
-            response = "Overdue tasks are now due today!"
-            respond(response)
-            return response
+            else:
+                response = "Sorry didn't get that"
+                respond(response)
+                return response
 
-        else:
+        if (key_word_text == "task"):
+            task_title = str(doc[first_key_word_index:])
+            if (task_title):
+                tasks.clear_task(task_title)
+                response = f"Task {task_title} cleared"
+                respond(response)
+                return response
+            else:
+                response = "Invalid task name"
+                respond(response)
+                return response
 
-            response = "Sorry didn't get that"
-            respond(response)
-            return response
+    elif (action == "Update"):
+
+        tasks.update_due_task()
+        response = "Overdue tasks are now due today!"
+        respond(response)
+        return response
+
+    else:
+
+        response = "Sorry didn't get that"
+        respond(response)
+        return response
 
 
-handle_command("create a new task help mom groceries")
+handle_command(
+    "clear today's tasks")
