@@ -34,15 +34,15 @@ def main_page():
 
                [sg.Text("",  size=(100, 1), text_color="grey", background_color="white",
                         justification='right', font=("Calibri", 13), key="-Command-")],
-               [sg.Text("", size=(100, 1),  background_color="white",
-                        justification='left', font=("Calibri", 13), key="-Response-")],
+               [sg.Multiline("", size=(100, 10), disabled=True, text_color="grey", background_color="white",
+                             justification='left', font=("Calibri", 13), key="-Response-")],
                [loader]
 
                ]
 
     layout = [[sg.Column(layout1, visible=False, key='-COL1-'), sg.Column(layout2, visible=False,
                                                                           key='-COL2-'), sg.Column(layout3, visible=True, key='-COL3-')]]
-    return sg.Window("Tana", layout, size=(400, 300), background_color="white", resizable=False, no_titlebar=False, grab_anywhere=True,  finalize=True)
+    return sg.Window("Tana", layout, size=(400, 600), background_color="white", resizable=False, no_titlebar=False, grab_anywhere=True,  finalize=True)
 
 
 def split_for_type_writer_effect(string):

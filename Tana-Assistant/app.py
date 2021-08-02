@@ -28,6 +28,7 @@ def main():
         main_page_flow()
 
     elif (not creds.valid):
+        print("hello")
         file_handler.remove_token()
     else:
         main_page_flow()
