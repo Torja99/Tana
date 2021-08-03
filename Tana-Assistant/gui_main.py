@@ -76,7 +76,6 @@ def listen_thread(window):
     voice.respond(response)
 
     if (response == "Goodbye!"):
-        text_effect_display(response, "-Response-", window)
         time.sleep(1)
         window.write_event_value(sg.WINDOW_CLOSED, "")
 

@@ -1,14 +1,10 @@
 from __future__ import print_function
 import os.path
 from google.oauth2.credentials import Credentials
-# from gtts.tts import gTTSError
-# from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
-# from google_auth_oauthlib.flow import InstalledAppFlow
 import file_handler
 import custom_logger
 SCOPES = ['https://www.googleapis.com/auth/tasks']
-# TODO: change to use main file https://dev.to/codemouse92/dead-simple-python-project-structure-and-imports-38c6
 
 
 def main_page_flow():
