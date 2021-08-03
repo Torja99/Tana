@@ -1,9 +1,12 @@
 from __future__ import print_function
 import os.path
 from google.oauth2.credentials import Credentials
-from gtts.tts import gTTSError
-from googleapiclient.discovery import build
+# from gtts.tts import gTTSError
+# from googleapiclient.discovery import build
+from google.auth.transport.requests import Request
+# from google_auth_oauthlib.flow import InstalledAppFlow
 import file_handler
+import custom_logger
 SCOPES = ['https://www.googleapis.com/auth/tasks']
 # TODO: change to use main file https://dev.to/codemouse92/dead-simple-python-project-structure-and-imports-38c6
 
@@ -20,18 +23,20 @@ def main():
     if os.path.exists('token.json'):
         creds = Credentials.from_authorized_user_file('token.json', SCOPES)
 
-    #!EXPIRED TOKEN.JSON (not creds.valid) case does not work
-    if not creds:
-        from gui_welcome import run_welcome_page
-        run_welcome_page(creds, SCOPES)
-        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
-        main_page_flow()
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:  # expired token case
+            creds.refresh(Request())
+        else:
+            try:
+                # token invalid or not there
+                from gui_welcome import run_welcome_page
+                run_welcome_page(creds, SCOPES)
+                creds = Credentials.from_authorized_user_file(
+                    'token.json', SCOPES)
+            except FileNotFoundError:
+                custom_logger.log.info("Early Exit Error")
 
-    elif (not creds.valid):
-        print("hello")
-        file_handler.remove_token()
-    else:
-        main_page_flow()
+    main_page_flow()
 
 
 if __name__ == '__main__':
