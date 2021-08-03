@@ -32,8 +32,10 @@ def main_page():
                [sg.Text("What can I help you with?", size=(100, 1),  background_color="white",
                         justification='left', font=("Calibri", 13))],
 
-               [sg.Text("",  size=(100, 1), text_color="grey", background_color="white",
-                        justification='right', font=("Calibri", 13), key="-Command-")],
+               #    [sg.Text("",  size=(100, 1), text_color="grey", background_color="white",
+               #             justification='right', font=("Calibri", 13), key="-Command-")],
+               [sg.Multiline("", size=(100, 5), disabled=True, text_color="grey", background_color="white",
+                             justification='left', font=("Calibri", 13), key="-Command-")],
                [sg.Multiline("", size=(100, 10), disabled=True, text_color="grey", background_color="white",
                              justification='left', font=("Calibri", 13), key="-Response-")],
                [loader]
@@ -84,13 +86,14 @@ def listen_thread(window):
 
     window.write_event_value("-Handle Command Begin-", "")
     response = voice.handle_command(command)
+    text_effect_display(response, "-Response-", window)
+    voice.respond(response)
 
     if (response == "Goodbye!"):
         text_effect_display(response, "-Response-", window)
         time.sleep(1)
         window.write_event_value(sg.WINDOW_CLOSED, "")
 
-    text_effect_display(response, "-Response-", window)
     time.sleep(4)  # time for user to read answer before it is erased
     window["-Command-"].update(value="")
     window["-Response-"].update(value="")

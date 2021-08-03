@@ -8,6 +8,7 @@ import wolfram
 import custom_logger
 
 
+# respond with audio message
 def respond(audio_text):
     tts = gTTS(text=audio_text, lang='en')
     id = str(ctime()).split(":")
@@ -47,13 +48,13 @@ def handle_command(command):
 
     if (command == "goodbye" or command == "stop"):
         response = "Goodbye!"
-        respond(response)
+        # respond(response)
         return response
 
     # need at least 3 words in command to unpack
     if (command == "Audio Error" or len(command.split()) <= 2):
         response = "Sorry didn't get that"
-        respond(response)
+        # respond(response)
         return response
 
     nlp = nc.nlp
@@ -70,10 +71,10 @@ def handle_command(command):
     details = nc.check_details_exceptions(details)
     custom_logger.log.info(details)
 
-    #!when key words or verbs are empty send it to wolfram (the verb case is handled in check detials exceptions command)
+    #!when key words or verbs are empty (even after checking for exceptions) send it to wolfram (the verb case is handled in check details exceptions command)
     if (not details["key_words"] or not details["verbs"]):
         response = wolfram.wolfram_query(command)
-        respond(response)
+        # respond(response)
         return response
 
     first_verb_text = str(details["verbs"][0][0])
@@ -221,12 +222,12 @@ def handle_command(command):
             if(details["date"]):
                 tasks.clear_todays_tasks()
                 response = "Today's tasks cleared"
-                respond(response)
+                # respond(response)
                 return response
 
             else:
                 response = "Sorry didn't get that"
-                respond(response)
+                # respond(response)
                 return response
 
         if (key_word_text == "task"):
