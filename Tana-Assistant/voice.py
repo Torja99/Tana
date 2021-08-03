@@ -71,7 +71,7 @@ def handle_command(command):
     custom_logger.log.info(details)
 
     #!when key words or verbs are empty send it to wolfram (the verb case is handled in check detials exceptions command)
-    if (not details["key_words"]):
+    if (not details["key_words"] or not details["verbs"]):
         response = wolfram.wolfram_query(command)
         respond(response)
         return response
@@ -253,7 +253,3 @@ def handle_command(command):
         response = "Sorry didn't get that"
         respond(response)
         return response
-
-
-handle_command(
-    "clear today's tasks")

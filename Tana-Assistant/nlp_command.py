@@ -80,7 +80,7 @@ def format_matches(doc, matches):
 
 
 def check_details_exceptions(details):
-    if (not details["key_words"]):
+    if (not details["key_words"] or not details["verbs"]):
         return details
 
     if (details["verbs"]):  # check if verbs first entry is good
@@ -104,10 +104,8 @@ def check_details_exceptions(details):
         elif(exception_index < first_key_word_index):
             details["verbs"].insert(0, exception)
             details["exceptions"].remove(exception)
-            # del(exception)
 
     # verb can not be a key word
-
     if (details["verbs"][0] == first_key_word):
         details["key_words"].remove(first_key_word)
 

@@ -42,7 +42,7 @@ def main_page():
 
     layout = [[sg.Column(layout1, visible=False, key='-COL1-'), sg.Column(layout2, visible=False,
                                                                           key='-COL2-'), sg.Column(layout3, visible=True, key='-COL3-')]]
-    return sg.Window("Tana", layout, size=(400, 600), background_color="white", resizable=False, no_titlebar=False, grab_anywhere=True,  finalize=True)
+    return sg.Window("Tana", layout, size=(450, 600), background_color="white", resizable=False, no_titlebar=False, grab_anywhere=True,  finalize=True)
 
 
 def split_for_type_writer_effect(string):
@@ -80,6 +80,7 @@ def listen_thread(window):
         return
 
     text_effect_display(command, "-Command-", window)
+    # window["-Command-"].update(value=command)
 
     window.write_event_value("-Handle Command Begin-", "")
     response = voice.handle_command(command)

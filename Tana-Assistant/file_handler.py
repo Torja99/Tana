@@ -18,4 +18,5 @@ def create_log():
 
 def remove_token():
     file_path = f"{os.path.dirname(os.path.realpath(__file__))}\\token.json"
+    custom_logger.log.info(f"removed: {file_path}")
     os.remove(file_path)
