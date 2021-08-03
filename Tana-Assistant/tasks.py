@@ -240,7 +240,7 @@ def clear_task_from_list(task_title, task_list_title):
     task_id, task_list_id = task_info["id"], task_info["list_id"]
 
     body = {"id": task_id, "title": task_title,
-            "status": "completed"}
+            "status": "completed", "deleted": False, "due": str(pendulum.today())}
     service.tasks().update(
         tasklist=task_list_id, task=task_id, body=body).execute()
 
@@ -261,9 +261,9 @@ def task_list_verifier(task_list_title):
 
 '''
 
-Create task help mom with groceries under mom's groceries 
+Create task help mom with groceries under School
 Create task apples in groceries - put a task under a task list
-Create task get the doll under the table under help brother
+Create task get the ingredients under the table under School
 Create list help mom 
 Create list help
 Create a list called help mom 

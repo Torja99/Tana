@@ -11,39 +11,23 @@ def main_page():
     sg.theme("Material 2")
     sg.theme_background_color("white")
 
-    layout1 = [[sg.Image(LOGO, background_color="white")],
-               [sg.Text("What can I help you with?", size=(
-                   150, 1), background_color="white", justification='center', font=("Calibri", 15),  relief=sg.RELIEF_RIDGE)],
-               ]
-    layout2 = [[sg.Image(LOGO, background_color="white")],
-               [sg.Text("try saying ....", size=(
-                   45, 1), background_color="white", justification='center', font=("Calibri", 14), relief=sg.RELIEF_RIDGE)],
-               [sg.Text("\"create task get groceries\"", size=(
-                   45, 1), background_color="white", text_color=("grey"), justification='center', font=("Calibri", 14), relief=sg.RELIEF_RIDGE)],
-               [sg.Text("\"what's the weather in Toronto\"", size=(
-                   45, 1), justification='center', background_color="white",  text_color=("grey"), font=("Calibri", 14), relief=sg.RELIEF_RIDGE)],
-               ]
-
     logo = sg.Image(LOGO, background_color="white")
     loader = sg.Image(r"assets\loader.gif",
                       background_color="white", key="-Load-")
     layout3 = [[logo],
 
                [sg.Text("What can I help you with?", size=(100, 1),  background_color="white",
-                        justification='left', font=("Calibri", 13))],
+                        justification='left', font=("Arial", 13))],
 
-               #    [sg.Text("",  size=(100, 1), text_color="grey", background_color="white",
-               #             justification='right', font=("Calibri", 13), key="-Command-")],
                [sg.Multiline("", size=(100, 5), disabled=True, text_color="grey", background_color="white",
-                             justification='left', font=("Calibri", 13), key="-Command-")],
+                             justification='right', font=("Arial", 11), key="-Command-")],
                [sg.Multiline("", size=(100, 10), disabled=True, text_color="grey", background_color="white",
-                             justification='left', font=("Calibri", 13), key="-Response-")],
+                             justification='left', font=("Arial", 11), key="-Response-")],
                [loader]
 
                ]
 
-    layout = [[sg.Column(layout1, visible=False, key='-COL1-'), sg.Column(layout2, visible=False,
-                                                                          key='-COL2-'), sg.Column(layout3, visible=True, key='-COL3-')]]
+    layout = [[sg.Column(layout3, visible=True, key='-COL3-')]]
     return sg.Window("Tana", layout, size=(450, 600), background_color="white", resizable=False, no_titlebar=False, grab_anywhere=True,  finalize=True)
 
 
@@ -71,6 +55,8 @@ def text_effect_display(text, key, window):
 def listen_thread(window):
     command = voice.listen()
     if ("Audio Error" in command):  # if audio error (usually stalled input) just keep waiting
+        # print("lag")
+        window.write_event_value("-Listen Thread Done-", "")
         return
 
     elif ("Request Failed" in command):
@@ -81,10 +67,10 @@ def listen_thread(window):
         window.write_event_value("-Device Error-", "")
         return
 
+    window.write_event_value("-Handle Command Begin-", "")
     text_effect_display(command, "-Command-", window)
     # window["-Command-"].update(value=command)
 
-    window.write_event_value("-Handle Command Begin-", "")
     response = voice.handle_command(command)
     text_effect_display(response, "-Response-", window)
     voice.respond(response)
@@ -116,7 +102,7 @@ def run_main_page():
 
         if slow_animate:
             load_gif.update_animation(
-                load_gif.Filename, time_between_frames=40)
+                load_gif.Filename, time_between_frames=60)
 
         else:
             load_gif.update_animation(
@@ -146,7 +132,6 @@ def run_main_page():
         elif event == '-Listen Thread Done-':
             listen(window)
             slow_animate = False
-            # break
 
         if event == sg.WIN_CLOSED:
             break

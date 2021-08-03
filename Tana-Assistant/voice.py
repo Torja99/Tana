@@ -7,8 +7,9 @@ import nlp_command as nc
 import wolfram
 import custom_logger
 
+# respond with audio message (called in gui)
 
-# respond with audio message
+
 def respond(audio_text):
     tts = gTTS(text=audio_text, lang='en')
     id = str(ctime()).split(":")
@@ -89,7 +90,6 @@ def handle_command(command):
             response_list_numbered = numbered_list(response_list)
             response_string = ", ".join(response_list_numbered)
             response = f"Today's tasks are {response_string}"
-            respond(response)
             return response
 
         elif(details["prepositions"]):
@@ -102,15 +102,22 @@ def handle_command(command):
             if (task_list_title):
                 response_list = (
                     tasks.list_tasks(task_list_title)["title"])
+
+                if not response_list:
+                    response = f"No tasks remaining from {task_list_title}!"
+                    return response
+
                 response_list_numbered = numbered_list(response_list)
+
                 response_string = ", ".join(response_list_numbered)
                 response = f"Tasks from {task_list_title} include {response_string}"
-                respond(response)
                 return response
             else:
                 response = "Invalid task list name"
-                respond(response)
                 return response
+        else:
+            response = "Sorry didn't get that"
+            return response
 
     elif (action == "Create"):
 
@@ -129,12 +136,10 @@ def handle_command(command):
 
                 tasks.create_task(task_title, task_list_title)
                 response = f"New task {task_title} under list {task_list_title} created"
-                respond(response)
                 return response
 
             else:
                 response = "Invalid list name"
-                respond(response)
             return response
 
         elif(key_word_text == "task"):
@@ -145,11 +150,9 @@ def handle_command(command):
                 tasks.create_task(task_title)
 
                 response = f"New task {task_title} created"
-                respond(response)
                 return response
             else:
                 response = "Invalid task name"
-                respond(response)
                 return response
 
         elif(key_word_text == "list"):
@@ -160,12 +163,13 @@ def handle_command(command):
                 tasks.create_task_list(task_list_title)
 
                 response = f"New list {task_list_title} created"
-                respond(response)
                 return response
             else:
                 response = "Invalid list name"
-                respond(response)
                 return response
+        else:
+            response = "Sorry didn't get that"
+            return response
 
     elif (action == "Clear"):
         first_key_word_index = details["key_words"][0][2]
@@ -185,7 +189,6 @@ def handle_command(command):
 
                     tasks.clear_task_from_list(task_title, task_list_title)
                     response = f"Task {task_title} cleared from {task_list_title}"
-                    respond(response)
                     return response
 
                 else:
@@ -194,11 +197,9 @@ def handle_command(command):
                         if (task_title):
                             tasks.clear_task(task_title)
                             response = f"Task {task_title} cleared"
-                            respond(response)
                             return response
                         else:
                             response = "Invalid task name"
-                            respond(response)
                             return response
 
             if (key_word_text == "tasks"):
@@ -211,23 +212,19 @@ def handle_command(command):
                 if (task_list_title):
                     tasks.clear_all_tasks_from_task_list(task_list_title)
                     response = f"Tasks from {task_list_title} cleared"
-                    respond(response)
                     return response
                 else:
                     response = "Invalid task list name"
-                    respond(response)
                     return response
 
         if (key_word_text == "tasks"):
             if(details["date"]):
                 tasks.clear_todays_tasks()
                 response = "Today's tasks cleared"
-                # respond(response)
                 return response
 
             else:
                 response = "Sorry didn't get that"
-                # respond(response)
                 return response
 
         if (key_word_text == "task"):
@@ -235,22 +232,18 @@ def handle_command(command):
             if (task_title):
                 tasks.clear_task(task_title)
                 response = f"Task {task_title} cleared"
-                respond(response)
                 return response
             else:
                 response = "Invalid task name"
-                respond(response)
                 return response
 
     elif (action == "Update"):
 
         tasks.update_due_task()
         response = "Overdue tasks are now due today!"
-        respond(response)
         return response
 
     else:
 
         response = "Sorry didn't get that"
-        respond(response)
         return response
