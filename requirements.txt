@@ -52,6 +52,7 @@ pathy==0.5.2
 pendulum==2.1.2
 pickleshare==0.7.5
 Pillow==8.2.0
+pip-check-reqs==2.2.2
 pipwin==0.5.1
 playsound==1.2.2
 preshed==3.0.5
@@ -116,8 +117,6 @@ uritemplate==3.0.1
 urllib3==1.26.4
 wasabi==0.8.2
 wcwidth==0.2.5
-wikipedia==1.4.0
-Wikipedia-API==0.5.4
 wolframalpha==5.0.0
 wordhoard==1.4.5
 xmltodict==0.12.0

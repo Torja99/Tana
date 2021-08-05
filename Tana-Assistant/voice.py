@@ -236,3 +236,4 @@ def handle_command(command):
 
         response = "Sorry didn't get that"
         return response
+handle_command("how tall is kevin durant")
