@@ -8,6 +8,7 @@
 
 ## Usage
 **Update**: Have a bunch of overdue tasks and don't want to spend time manually clicking each one to update? just ask Tana to *update* tasks.
+[https://user-images.githubusercontent.com/22987998/128398479-70683ae3-6c84-4674-b1fe-b02e0c53aee6.mp4]
 
 **Create**: Easily create new tasks or lists using the *create/make/generate/procure* key word. 
 
@@ -31,7 +32,13 @@
 *prerequisites: have git, python, and pip setup on a Windows machine*
 ```bat
 git pull https://github.com/Torja99/Tana.git
-cd Tana
+cd Tana/
+
+
+
+
+
+
 pip install -U requirements.txt
 cd Tana-Assistant/
 python app.py
